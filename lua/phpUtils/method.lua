@@ -87,9 +87,9 @@ M.get_location = function()
     local name_node = tree.child_type(parent, "name")
     local name = tree.get_text(name_node)
 
-    if name_node == nil then
-        return
-    end
+    -- if name_node == nil then
+    --     return
+    -- end
 
     local child_name = tree.get_text(child)
     if child_name == "$this" then
