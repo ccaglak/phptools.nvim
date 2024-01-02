@@ -8,6 +8,7 @@ local templates = {
     base_clause = "class",
     object_creation_expression = "class",
     use_declaration = "trait",
+    class_constant_access_expression = "enum",
 }
 
 M.class = function()
@@ -36,8 +37,16 @@ M.class = function()
 
     parent_text = parent_text:gsub("%b()", "") -- gsub to empty the bracket
 
-    local split = M.spliter(parent_text)
-    local fname = split[2]
+    local spliter = " "
+    local piece = 2
+    if type == "class_constant_access_expression" then -- enums
+        piece = 1
+        splitter = "::"
+    end
+
+    local split = M.spliter(parent_text, splitter)
+
+    local fname = split[piece]
 
     local prefix, dir = cmp.composer()
 
@@ -46,14 +55,14 @@ M.class = function()
     local template = templates[type]
 
     vim.ui.input({
-        prompt = "Directory for " .. split[2] .. ".php :",
+        prompt = "Directory for " .. fname .. ".php :",
         completion = "dir",
         default = dir,
     }, function(dr)
         if dr == nil then
             return
         end
-        local filename = root .. dr .. split[2] .. ".php"
+        local filename = root .. dr .. fname .. ".php"
         local namespace = require("phpUtils.namespace").gen(root, filename, prefix, dir)
         local tmpl = M.template_builder(template, fname, namespace, constructor)
 
@@ -123,10 +132,11 @@ end
 
 M.get_parent = function()
     local ts_parents = {
-        "class_interface_clause", -- interface
+        "object_creation_expression", --class
         "base_clause", -- extends
-        "object_creation_expression",
+        "class_interface_clause", -- interface
         "use_declaration", -- trait
+        "class_constant_access_expression", -- enum
     }
     local parent
     for i, p in ipairs(ts_parents) do
@@ -163,7 +173,11 @@ M.diagnostics = function()
                 return diagnostic, diagnostic.source
             end
 
-            if diagnostic.message:match("Instantiated class") == "Instantiated class" then
+            if
+                diagnostic.message:match("Instantiated class") == "Instantiated class"
+                or diagnostic.message:match("unknown class") == "unknown class"
+                or diagnostic.message:match("unknown interface") == "unknown interface"
+            then
                 return diagnostic, diagnostic.source -- phpstan
             end
         end
