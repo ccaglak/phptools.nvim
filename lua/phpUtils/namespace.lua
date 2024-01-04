@@ -1,6 +1,7 @@
 local M = {}
 
-M.gen = function(root, path, prefix, src)
+M.gen = function(root, path, prefix, src, current)
+    current = current or false
     path = path:gsub(root, "")
 
     local filename = vim.fn.fnamemodify(path, ":t")
@@ -13,6 +14,10 @@ M.gen = function(root, path, prefix, src)
     path = bpath:gsub(src, prefx)
 
     path = M.pascalCase(path)
+
+    if current then
+        return "use " .. path .. "\\"
+    end
 
     path = "namespace " .. path .. ";"
     return path

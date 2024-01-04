@@ -17,4 +17,19 @@ M.commands = function()
     cmpsr.scripts()
 end
 
+
+local config = {
+    uiOverwrite= false,
+    scrictType = true,
+  }
+
+
+  M.config = config
+
+  M.setup = function(args)
+    M.config = vim.tbl_deep_extend("force", M.config, args or {})
+  end
+
+
+
 return M

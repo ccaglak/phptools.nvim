@@ -14,19 +14,13 @@ local templates = {
 M.class = function()
     -- local cWord = vim.fn.escape(vim.fn.expand("<cword>"), [[\/]])
     local sep = M.sep()
-    local parent, type = M.get_parent()
-    if not type then
+    local parent, parent_type, parent_text = M.get_parent()
+    if not parent_type or not parent_text then
         return
     end
 
-    local diag = M.diagnostics()
-    if diag == nil then
-        return
-    end
-
-    local parent_text = tree.get_text(parent)
     local constructor = false
-    if type == "object_creation_expression" then
+    if parent_type == "object_creation_expression" then
         local in_bracket = parent_text:match("%((.-)%)")
         if in_bracket ~= "" then
             -- TODO complete __contruct params
@@ -37,39 +31,64 @@ M.class = function()
 
     parent_text = parent_text:gsub("%b()", "") -- gsub to empty the bracket
 
-    local splitter = " "
-    local piece = 2
-    if type == "class_constant_access_expression" then -- enums
-        piece = 1
-        splitter = "::"
+    ----------------------
+
+    local name_node, name_name, name_range = tree.children(parent, "name")
+    local name_pos = {
+        character = name_range[2] + 1,
+        line = name_range[1],
+    }
+
+    local file_location = M._lsp(name_pos)
+    if file_location == nil then
+        return
+    end
+    local loc = vim.lsp.util.make_position_params()
+
+    if #file_location >= 1 then
+        if file_location[1].targetUri == loc.textDocument.uri then
+            return
+        end
+        vim.lsp.util.jump_to_location(file_location[1], "utf-8")
+        return
     end
 
-    local split = M.spliter(parent_text, splitter)
-
-    local fname = split[piece]
+    ----------------------
+    local fname = name_name
 
     local prefix, dir = cmp.composer()
 
-    local root = vim.fn.expand("%:p:h") .. sep
+    local path = loc.textDocument.uri:gsub("file://", "")
 
-    local template = templates[type]
+    local root = require("phpUtils.root").root() .. sep
+
+    path = path:gsub(root, "")
+
+    path = vim.fn.fnamemodify(path, ":h")
+
+    if path == "." then
+        path = "src/"
+    end
+
+    local template = templates[parent_type]
 
     vim.ui.input({
-        prompt = "Directory for " .. fname .. ".php :",
+        prompt = "Directory for " .. fname .. ".php",
         completion = "dir",
-        default = dir,
+        default = path,
     }, function(dr)
         if dr == nil then
             return
         end
         local filename = root .. dr .. fname .. ".php"
-        local namespace = require("phpUtils.namespace").gen(root, filename, prefix, dir)
-        local tmpl = M.template_builder(template, fname, namespace, constructor)
 
-        if vim.fn.filereadable(filename) ~= 0 then
-            vim.cmd.e(filename) -- this could also return
-            return
-        end
+        local namespace = require("phpUtils.namespace").gen(root, filename, prefix, dir)
+
+        local current_namespace = require("phpUtils.namespace").gen(root, filename, prefix, dir, true)
+
+        M.add_to_current_buffer({ current_namespace .. fname .. ";" })
+
+        local tmpl = M.template_builder(template, fname, namespace, constructor)
 
         local bufnr = M.get_bufnr(filename)
         vim.api.nvim_set_option_value("filetype", "php", {
@@ -85,6 +104,23 @@ M.class = function()
         end
         vim.fn.cursor({ row, 9 })
     end)
+end
+
+M._lsp = function(pos, method)
+    method = method or "textDocument/typeDefinition"
+
+    local params = vim.lsp.util.make_position_params()
+    params.position = pos
+
+    local results, err = vim.lsp.buf_request_sync(0, method, params, 1000)
+    if err or results == nil or #results == 0 then
+        return
+    end
+
+    local rs = {}
+    for _, v in pairs(results) do
+        return vim.list_extend(rs, v.result)
+    end
 end
 
 M.template_builder = function(template, filename, namespace, constructor)
@@ -125,6 +161,14 @@ M.add_to_buffer = function(lines, bufnr)
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
 end
 
+M.add_to_current_buffer = function(lines, bufnr)
+    bufnr = bufnr or 0
+    if not vim.api.nvim_buf_is_valid(bufnr) then
+        return
+    end
+    vim.api.nvim_buf_set_lines(bufnr, 3, 3, true, lines)
+end
+
 M.sep = function()
     local win = vim.loop.os_uname().sysname == "Darwin" or "Linux"
     return win and "/" or "\\"
@@ -139,15 +183,15 @@ M.get_parent = function()
         "class_constant_access_expression", -- enum
     }
     local parent
-    for i, p in ipairs(ts_parents) do
-        parent = tree.parent(p)
+    for i, type in ipairs(ts_parents) do
+        local parent = tree.parent(type)
         if parent ~= nil then
-            if parent:type() == p then
-                return parent, p
+            if parent:type() == type then
+                return parent, type, tree.get_text(parent)
             end
         end
     end
-    return nil
+    return
 end
 
 M.spliter = function(path, sep)
@@ -160,28 +204,38 @@ M.spliter = function(path, sep)
     return t
 end
 
-M.diagnostics = function()
-    local bufnr, lnum = unpack(vim.fn.getcurpos())
-    local diagnostics = vim.lsp.diagnostic.get_line_diagnostics(bufnr, lnum - 1, {})
-    if vim.tbl_isempty(diagnostics) then
-        return
-    end
+M.get_insertion_point = function(bufnr)
+    bufnr = bufnr or M.get_bufnr()
+    local content = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
-    for _, diagnostic in ipairs(diagnostics) do
-        if diagnostic.source == "intelephense" or diagnostic.source == "phpstan" then
-            if diagnostic.code == "P1009" then
-                return diagnostic, diagnostic.source
-            end
+    -- default to line 3
+    local insertion_point = nil
+    local namespace_line_number = nil
+    local last_use_statement_line_number = nil
 
-            if
-                diagnostic.message:match("Instantiated class") == "Instantiated class"
-                or diagnostic.message:match("unknown class") == "unknown class"
-                or diagnostic.message:match("unknown interface") == "unknown interface"
-            then
-                return diagnostic, diagnostic.source -- phpstan
-            end
+    for i, line in ipairs(content) do
+        if line:find("^declare") then
+            namespace_line_number = i
+        end
+
+        if line:find("^namespace") then
+            namespace_line_number = i
+        end
+
+        if line:find("^use") then
+            last_use_statement_line_number = i
         end
     end
+
+    if namespace_line_number then
+        insertion_point = namespace_line_number + 1
+    end
+
+    if last_use_statement_line_number then
+        insertion_point = last_use_statement_line_number
+    end
+
+    return insertion_point or 3
 end
 
 return M

@@ -8,35 +8,12 @@ local codes = {
 }
 
 M.method = function()
-    local cWord = vim.fn.escape(vim.fn.expand("<cword>"), [[\/]])
     local filename, method_name = M.get_location()
-    if filename == nil or filename == "" then
+    if filename == nil then
         return
     end
 
     filename = filename:gsub("file://", "")
-
-    -- this should be optional
-    local diag, source = M.diagnostics()
-    if diag == nil then
-        return
-    end
-    if diag.source ~= "intelephense" then
-        -- TODO match needs to checked
-        local source = diag.source
-        if diag.message:match("method") == "method" then
-            diag.code = codes.method
-        end
-    end
-
-    if not method_name then
-        method_name = cWord
-    end
-
-    -- if diag.source == "intelephense" then
-    --     local message = diag.message
-    --     local diag_method_name = string.match(message, [['([^']+)]])
-    -- end
 
     local bufnr = M.get_bufnr(filename)
     local lines = {
@@ -79,70 +56,59 @@ M.get_location = function()
         return
     end
 
-    local child = tree.child_type(parent, "variable_name")
+    local child, child_name, child_range = tree.child_type(parent, "variable_name")
     if child == nil then
         return
     end
 
-    local name_node = tree.child_type(parent, "name")
-    local name = tree.get_text(name_node)
-
-    -- if name_node == nil then
-    --     return
-    -- end
-
-    local child_name = tree.get_text(child)
-    if child_name == "$this" then
-        return vim.fn.expand("%:p"), name
-    end
-    local child_pos = { child:range() } -- { 10, 0, 10, 7 }
-
-    local positions = {
-        character = child_pos[2] + 1,
-        line = child_pos[1],
+    local child_pos = {
+        character = child_range[2] + 1,
+        line = child_range[1],
     }
-    local file_location = M._lsp(positions)
+
+    -------- name node
+    local name_node, name_name, name_range = tree.child(parent, "name")
+    local name_pos = {
+        character = name_range[2] + 1,
+        line = name_range[1],
+    }
+
+    local file_location = M._lsp(name_pos, "textDocument/definition")
+
+    if #file_location >= 1 then
+        local loc = vim.lsp.util.make_position_params()
+
+        if file_location[1].targetUri == loc.textDocument.uri then
+            if child_name == "$this" then
+                return file_location[1].targetUri, name_name
+            end
+        end
+        vim.lsp.util.jump_to_location(file_location[1], "utf-8")
+        return
+    end
+
+    local file_location = M._lsp(child_pos)
+
     if file_location == nil then
         return
     end
-    return file_location[1].uri, name
+    return file_location[1].uri, name_name
 end
 
-M._lsp = function(positions)
-    local params = vim.lsp.util.make_position_params()
-    params.position = positions
+M._lsp = function(pos, method)
+    method = method or "textDocument/typeDefinition"
 
-    results, err = vim.lsp.buf_request_sync(0, "textDocument/typeDefinition", params, 1000)
+    local params = vim.lsp.util.make_position_params()
+    params.position = pos
+
+    local results, err = vim.lsp.buf_request_sync(0, method, params, 1000)
     if err or results == nil or #results == 0 then
         return
     end
 
     local rs = {}
     for _, v in pairs(results) do
-        if v.result[1].uri:match("vendor") == "vendor" then
-            return
-        end
         return vim.list_extend(rs, v.result)
-    end
-end
-
-M.diagnostics = function()
-    local bufnr, lnum = unpack(vim.fn.getcurpos())
-    local diagnostics = vim.lsp.diagnostic.get_line_diagnostics(bufnr, lnum - 1, {})
-    if vim.tbl_isempty(diagnostics) then
-        return
-    end
-
-    for _, diagnostic in ipairs(diagnostics) do
-        if diagnostic.source == "intelephense" or diagnostic.source == "phpstan" then
-            if diagnostic.code == "P1013" then
-                return diagnostic, diagnostic.source
-            end
-
-            if diagnostic.message:match("undefined method") == "undefined method" then
-                return diagnostic, diagnostic.source -- phpstan
-            end
-        end
     end
 end
 

@@ -20,24 +20,46 @@ M.parent = function(type)
     return node
 end
 
-M.child_type = function(node, type)
-    local cnod = node:child()
+-- named child
+-- node text range
+M.child = function(cnode, cname)
+    cnode = cnode or M.cursor()
+    for node, name in cnode:iter_children() do
+        if node:named() then
+            if name == cname then
+                return node, M.get_text(node), { node:range() }
+            end
+        end
+    end
+end
+
+-- unnamed typed
+-- node text range
+M.child_type = function(cnod, type)
     while cnod do
         if cnod:type() == type then
-            break
+            return cnod, M.get_text(cnod), { cnod:range() }
         end
         cnod = cnod:child()
     end
-    return cnod
+    -- return cnod, M.get_text(cnod), { cnod:range() }
 end
 
 M.children = function(cnode, type)
     cnode = cnode or M.cursor()
     for node, _ in cnode:iter_children() do
         if node:type() == type then
-            return M.get_text(node), node --  perhaps returning node could be better idea
+            return node, M.get_text(node), { node:range() }
         end
     end
+end
+
+function M.node_to_lsp_range(node)
+    local start_line, start_col, end_line, end_col = ts.get_node_range(node)
+    local rtn = {}
+    rtn.start = { line = start_line, character = start_col }
+    rtn["end"] = { line = end_line, character = end_col }
+    return rtn
 end
 
 return M
