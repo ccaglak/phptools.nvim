@@ -213,34 +213,26 @@ M.spliter = function(path, sep)
 end
 
 M.get_insertion_point = function(bufnr)
-    bufnr = bufnr or M.get_bufnr()
-    local content = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local lastline = vim.api.nvim_buf_line_count(bufnr)
+    -- TODO dont want to read whole file 1/4
+    local content = vim.api.nvim_buf_get_lines(0, 0, -1, false)
 
-    -- default to line 3
     local insertion_point = nil
-    local namespace_line_number = nil
-    local last_use_statement_line_number = nil
 
     for i, line in ipairs(content) do
-        if line:find("^declare") then
-            namespace_line_number = i
+        if line:find("^declare") or line:find("^namespace") or line:find("^use") then
+            insertion_point = insertion_point + 1
         end
 
-        if line:find("^namespace") then
-            namespace_line_number = i
+        if
+            line:find("^class")
+            or line:find("^final")
+            or line:find("^interface")
+            or line:find("^abstract")
+            or line:find("^trait")
+        then
+            break
         end
-
-        if line:find("^use") then
-            last_use_statement_line_number = i
-        end
-    end
-
-    if namespace_line_number then
-        insertion_point = namespace_line_number + 1
-    end
-
-    if last_use_statement_line_number then
-        insertion_point = last_use_statement_line_number
     end
 
     return insertion_point or 3
