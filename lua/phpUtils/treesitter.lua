@@ -45,6 +45,16 @@ M.child_type = function(cnod, type)
     -- return cnod, M.get_text(cnod), { cnod:range() }
 end
 
+M.next_child_type = function(cnod, type)
+    while cnod do
+        cnod = cnod:child()
+        if cnod:type() == type then
+            return cnod, M.get_text(cnod), { cnod:range() }
+        end
+    end
+    -- return cnod, M.get_text(cnod), { cnod:range() }
+end
+
 M.children = function(cnode, type)
     cnode = cnode or M.cursor()
     for node, _ in cnode:iter_children() do

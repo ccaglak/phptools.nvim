@@ -34,15 +34,23 @@ M.class = function()
     ----------------------
 
     local name_node, name_name, name_range = tree.children(parent, "name")
+
+    if parent_type == "class_constant_access_expression" then
+        name_node = parent:child()
+        name_name = tree.get_text(name_node)
+        name_range = { name_node:range() }
+    end
+
     local name_pos = {
         character = name_range[2] + 1,
         line = name_range[1],
     }
 
     local file_location = M._lsp(name_pos)
-    if file_location == nil then
-        return
+    if #file_location == 0 then
+        file_location = M._lsp(name_pos, "textDocument/definition")
     end
+
     local loc = vim.lsp.util.make_position_params()
 
     if #file_location >= 1 then
