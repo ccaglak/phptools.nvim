@@ -27,8 +27,10 @@ M.method = function()
     local lastline = vim.api.nvim_buf_line_count(bufnr)
 
     M.add_to_buffer(lines, bufnr, lastline)
-    vim.cmd.e(filename)
-    -- vim.api.nvim_set_current_buf(bufnr)
+    vim.api.nvim_set_current_buf(bufnr)
+    vim.api.nvim_buf_call(0, function()
+        vim.cmd("silent! write! | edit")
+    end)
     vim.fn.cursor({ lastline + 2, 9 })
 end
 

@@ -1,8 +1,8 @@
--- borrowed from lazyvim https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/util/init.lua
+-- thanks to lazyvim https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/util/init.lua
 
 local M = {}
 
-M.root_patterns = { ".git", "lua", "vendor", "node_modules" }
+M.root_patterns = { ".git", ".github", "composer.json", "vendor", "node_modules" }
 
 function M.root()
     local path = vim.api.nvim_buf_get_name(0)

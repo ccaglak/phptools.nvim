@@ -103,13 +103,16 @@ M.class = function()
             buf = bufnr,
         })
         M.add_to_buffer(tmpl, bufnr)
-        vim.cmd.e(filename)
-        -- -- vim.api.nvim_set_current_buf(bufnr)
+        -- vim.cmd.e(filename)
+        vim.api.nvim_set_current_buf(bufnr)
 
         local row = 9
         if constructor then
             row = 11
         end
+        vim.api.nvim_buf_call(0, function()
+            vim.cmd("silent! write! | edit")
+        end)
         vim.fn.cursor({ row, 9 })
     end)
 end
@@ -143,9 +146,10 @@ M.template_builder = function(template, filename, namespace, constructor)
     table.insert(tmpl, template .. " " .. filename)
     table.insert(tmpl, "{")
     if constructor then
-        table.insert(tmpl, "     public function __contruct() :void {")
+        table.insert(tmpl, "    public function __contruct()")
+        table.insert(tmpl, "    {")
         table.insert(tmpl, "        //")
-        table.insert(tmpl, "     }")
+        table.insert(tmpl, "    }")
     else
         table.insert(tmpl, "        //")
     end
@@ -171,9 +175,7 @@ end
 
 M.add_to_current_buffer = function(lines, bufnr)
     bufnr = bufnr or 0
-    if not vim.api.nvim_buf_is_valid(bufnr) then
-        return
-    end
+    -- TODO implement insertion point
     vim.api.nvim_buf_set_lines(bufnr, 3, 3, true, lines)
 end
 
@@ -190,7 +192,7 @@ M.get_parent = function()
         "use_declaration", -- trait
         "class_constant_access_expression", -- enum
     }
-    local parent
+
     for i, type in ipairs(ts_parents) do
         local parent = tree.parent(type)
         if parent ~= nil then
@@ -199,7 +201,6 @@ M.get_parent = function()
             end
         end
     end
-    return
 end
 
 M.spliter = function(path, sep)
