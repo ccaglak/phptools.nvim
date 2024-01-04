@@ -49,8 +49,8 @@ M.method = function()
     vim.fn.bufload(bufnr)
     local lastline = vim.api.nvim_buf_line_count(bufnr)
 
-    vim.cmd.e(filename)
     M.add_to_buffer(lines, bufnr, lastline)
+    vim.cmd.e(filename)
     -- vim.api.nvim_set_current_buf(bufnr)
     vim.fn.cursor({ lastline + 2, 9 })
 end
@@ -119,9 +119,9 @@ M._lsp = function(positions)
 
     local rs = {}
     for _, v in pairs(results) do
-        -- if v.result[1].uri:match("vendor") == "vendor" then
-        --     return
-        -- end
+        if v.result[1].uri:match("vendor") == "vendor" then
+            return
+        end
         return vim.list_extend(rs, v.result)
     end
 end

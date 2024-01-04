@@ -1,7 +1,6 @@
 local ts, api = vim.treesitter, vim.api
 local M = {}
 
-
 M.cursor = function()
     local row, col = unpack(api.nvim_win_get_cursor(0))
     local node = ts.get_node({ buffer = 0, pos = { row - 1, col - 1 } })

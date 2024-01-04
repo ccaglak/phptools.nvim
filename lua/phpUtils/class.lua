@@ -37,7 +37,7 @@ M.class = function()
 
     parent_text = parent_text:gsub("%b()", "") -- gsub to empty the bracket
 
-    local spliter = " "
+    local splitter = " "
     local piece = 2
     if type == "class_constant_access_expression" then -- enums
         piece = 1
