@@ -10,7 +10,7 @@ Neovim PhpUtils - one step toward phpstorm
 -   `:PhpScripts` runs composer scripts
 -   `:PhpNamespace` generates namespace for the file
 
-## Install
+## Install    -- no default keymaps
 
 ```lua
 
@@ -33,6 +33,7 @@ Neovim PhpUtils - one step toward phpstorm
 
 -   pleanery.nvim
 -   nvim-treesitter (`:TSInstall php json`)
+-   recommended
 
 ## Features to be added
 - custom templates
@@ -57,6 +58,6 @@ PHP Namespace Resolve [namespace.nvim](https://github.com/ccaglak/namespace.nvim
 
 ## Inspired
 
--   by VSCode Php Namespace Resolver
+-   by PHPStorm
 
 ## License MIT
