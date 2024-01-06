@@ -2,6 +2,7 @@
 local mthd = require("phpUtils.method")
 local clss = require("phpUtils.class")
 local cmpsr = require("phpUtils.composer")
+local nspc = require("phpUtils.namespace")
 
 local M = {}
 
@@ -17,19 +18,19 @@ M.commands = function()
     cmpsr.scripts()
 end
 
+M.name_space = function()
+    nspc.nspace()
+end
 
 local config = {
-    uiOverwrite= false,
+    uiOverwrite = false,
     scrictType = true,
-  }
+}
 
+M.config = config
 
-  M.config = config
-
-  M.setup = function(args)
+M.setup = function(args)
     M.config = vim.tbl_deep_extend("force", M.config, args or {})
-  end
-
-
+end
 
 return M

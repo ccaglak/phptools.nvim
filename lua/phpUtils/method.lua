@@ -2,11 +2,6 @@ local tree = require("phpUtils.treesitter")
 
 local M = {}
 
-local codes = {
-    method = "P1013", -- intelephense code method not defined
-    class = "P1009", -- intelephense class not defined
-}
-
 M.method = function()
     local filename, method_name = M.get_location()
     if filename == nil then
@@ -69,7 +64,7 @@ M.get_location = function()
     }
 
     -------- name node
-    local name_node, name_name, name_range = tree.child(parent, "name")
+    local _, name_name, name_range = tree.child(parent, "name")
     local name_pos = {
         character = name_range[2] + 1,
         line = name_range[1],

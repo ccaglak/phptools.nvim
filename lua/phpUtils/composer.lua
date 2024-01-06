@@ -40,7 +40,7 @@ M.scripts = function()
     end
 
     vim.ui.select(tasks, {
-        prompt = "Run Tasks"
+        prompt = "Run Tasks",
     }, function(selection)
         if not selection then
             return

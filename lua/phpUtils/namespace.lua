@@ -1,5 +1,24 @@
 local M = {}
 
+M.nspace = function()
+    local sep = M.sep()
+    local prefix, dir = require("phpUtils.composer").composer()
+
+    local loc = vim.lsp.util.make_position_params()
+    local path = loc.textDocument.uri:gsub("file://", "")
+
+    local root = require("phpUtils.root").root() .. sep
+
+    local ns = M.gen(root, path, prefix, dir)
+
+    vim.api.nvim_buf_set_lines(0, 3, 3, true, { ns })
+end
+
+M.sep = function()
+    local win = vim.loop.os_uname().sysname == "Darwin" or "Linux"
+    return win and "/" or "\\"
+end
+
 M.gen = function(root, path, prefix, src, current)
     current = current or false
     path = path:gsub(root, "")

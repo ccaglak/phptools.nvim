@@ -37,6 +37,9 @@ M.class = function()
 
     if parent_type == "class_constant_access_expression" then
         name_node = parent:child()
+        if name_node == nil then
+            return
+        end
         name_name = tree.get_text(name_node)
         name_range = { name_node:range() }
     end
@@ -75,7 +78,7 @@ M.class = function()
     path = vim.fn.fnamemodify(path, ":h")
 
     if path == "." then
-        path = "src/"
+        path = "src" .. sep
     end
 
     local template = templates[parent_type]
@@ -103,7 +106,6 @@ M.class = function()
             buf = bufnr,
         })
         M.add_to_buffer(tmpl, bufnr)
-        -- vim.cmd.e(filename)
         vim.api.nvim_set_current_buf(bufnr)
 
         local row = 9
@@ -193,7 +195,7 @@ M.get_parent = function()
         "class_constant_access_expression", -- enum
     }
 
-    for i, type in ipairs(ts_parents) do
+    for _, type in ipairs(ts_parents) do
         local parent = tree.parent(type)
         if parent ~= nil then
             if parent:type() == type then
@@ -213,14 +215,13 @@ M.spliter = function(path, sep)
     return t
 end
 
-M.get_insertion_point = function(bufnr)
-    local lastline = vim.api.nvim_buf_line_count(bufnr)
+M.get_insertion_point = function()
+    -- local lastline = vim.api.nvim_buf_line_count(bufnr)
     -- TODO dont want to read whole file 1/4
     local content = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-
     local insertion_point = nil
 
-    for i, line in ipairs(content) do
+    for _, line in ipairs(content) do
         if line:find("^declare") or line:find("^namespace") or line:find("^use") then
             insertion_point = insertion_point + 1
         end
