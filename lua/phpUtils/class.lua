@@ -78,7 +78,7 @@ M.class = function()
     path = vim.fn.fnamemodify(path, ":h")
 
     if path == "." then
-        path = "src" .. sep
+        path = "src/" .. sep
     end
 
     local template = templates[parent_type]
@@ -105,7 +105,7 @@ M.class = function()
         vim.api.nvim_set_option_value("filetype", "php", {
             buf = bufnr,
         })
-        M.add_to_buffer(tmpl, bufnr)
+        M.add_template_to_buffer(tmpl, bufnr)
         vim.api.nvim_set_current_buf(bufnr)
 
         local row = 9
@@ -168,7 +168,7 @@ M.get_bufnr = function(filename)
     return vim.fn.bufadd(filename)
 end
 
-M.add_to_buffer = function(lines, bufnr)
+M.add_template_to_buffer = function(lines, bufnr)
     if not vim.api.nvim_buf_is_valid(bufnr) then
         return
     end
@@ -177,8 +177,9 @@ end
 
 M.add_to_current_buffer = function(lines, bufnr)
     bufnr = bufnr or 0
+    local insertion_line = M.get_insertion_point()
     -- TODO implement insertion point
-    vim.api.nvim_buf_set_lines(bufnr, 3, 3, true, lines)
+    vim.api.nvim_buf_set_lines(bufnr, insertion_line, insertion_line, true, lines)
 end
 
 M.sep = function()
@@ -221,9 +222,9 @@ M.get_insertion_point = function()
     local content = vim.api.nvim_buf_get_lines(0, 0, -1, false)
     local insertion_point = nil
 
-    for _, line in ipairs(content) do
+    for i, line in ipairs(content) do
         if line:find("^declare") or line:find("^namespace") or line:find("^use") then
-            insertion_point = insertion_point + 1
+            insertion_point = i
         end
 
         if

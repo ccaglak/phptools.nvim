@@ -12,6 +12,10 @@ M.nspace = function()
     local ns = M.gen(root, path, prefix, dir)
 
     vim.api.nvim_buf_set_lines(0, 3, 3, true, { ns })
+
+    vim.api.nvim_buf_call(0, function()
+        vim.cmd("silent! write! | edit")
+    end)
 end
 
 M.sep = function()
