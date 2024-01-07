@@ -37,7 +37,6 @@ Neovim PhpUtils - one step toward phpstorm
 
 ## Features to be added
 - custom templates
-- generate namespace
 - append to codeactions
 - laravel artisan command center
 - ability make method public/protected/private

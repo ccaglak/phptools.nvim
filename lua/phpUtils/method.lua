@@ -69,26 +69,25 @@ M.get_location = function()
         character = name_range[2] + 1,
         line = name_range[1],
     }
-
     local file_location = M._lsp(name_pos, "textDocument/definition")
-
+    if file_location == nil then
+        return
+    end
     if #file_location >= 1 then
-        local loc = vim.lsp.util.make_position_params()
-
-        if file_location[1].targetUri == loc.textDocument.uri then
-            if child_name == "$this" then
-                return file_location[1].targetUri, name_name
-            end
-        end
         vim.lsp.util.jump_to_location(file_location[1], "utf-8")
         return
     end
 
-    local file_location = M._lsp(child_pos)
-
+    file_location = M._lsp(child_pos)
     if file_location == nil then
         return
     end
+
+    if child_name == "$this" then
+        return vim.api.nvim_buf_get_name(0), name_name
+    end
+
+
     return file_location[1].uri, name_name
 end
 
