@@ -5,8 +5,8 @@ Neovim PhpUtils - one step toward phpstorm
 
 ## Basic Usage
 
--   `:PhpMethod` ex: $router->resolve(); generates undefined method in class
--   `:PhpClass`  ex: new Router(); generates the undefined class, trait, interface with with proper namespace also creates namespace for the current file
+-   `:PhpMethod` ex: $router->resolve(); || generates undefined method in class
+-   `:PhpClass`  ex: new Router(); or class Router extends|implements Route || generates the undefined class, trait, interface, enums with with proper namespace also creates namespace for the current file
 -   `:PhpScripts` runs composer scripts
 -   `:PhpNamespace` generates namespace for the file
 
@@ -40,7 +40,6 @@ Neovim PhpUtils - one step toward phpstorm
 - append to codeactions
 - laravel artisan command center
 - ability make method public/protected/private
-- generate __contruct with types params
 - getter/setters generaters ???????
 - custom template per directory base :? in Controller directory, controller template is generated
 - run tests (run all, filter, file, line)
