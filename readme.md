@@ -5,8 +5,8 @@ Neovim PhpUtils - one step toward phpstorm
 
 ## Basic Usage
 
--   `:PhpMethod` generates undefined method in class
--   `:PhpClass` generates the undefined class, trait, interface with with proper namespace also creates namespace for the current file
+-   `:PhpMethod` ex: $router->resolve(); generates undefined method in class
+-   `:PhpClass`  ex: new Router(); generates the undefined class, trait, interface with with proper namespace also creates namespace for the current file
 -   `:PhpScripts` runs composer scripts
 -   `:PhpNamespace` generates namespace for the file
 
@@ -21,7 +21,7 @@ Neovim PhpUtils - one step toward phpstorm
         { "<leader>lc", "<cmd>PhpClass<cr>"},
         { "<leader>ls", "<cmd>PhpScripts<cr>"},
         { "<leader>ln", "<cmd>PhpNamespace<cr>"},
-    }
+    },
     dependencies = {
         "nvim-lua/plenary.nvim"
     }
