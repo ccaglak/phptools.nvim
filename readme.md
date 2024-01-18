@@ -17,7 +17,7 @@ Neovim PhpTools - one step toward phpstorm
 ```lua
 
 {  -- lazy
-    'ccaglak/phpUtils.nvim',
+    'ccaglak/phptools.nvim',
     keys = {
         { "<leader>lm", "<cmd>PhpMethod<cr>"},
         { "<leader>lc", "<cmd>PhpClass<cr>"},
