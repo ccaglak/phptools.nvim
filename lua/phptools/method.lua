@@ -39,7 +39,7 @@ function Method:run()
   end
 
   M:find_file(M.variable_position())
-  if #M.file_location ~= 0 then
+  if M.file_location ~= nil then
     M.file_path = M.file_location[1].uri:gsub("file://", "")
   end
 
