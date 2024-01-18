@@ -6,11 +6,11 @@ Neovim PhpUtils - one step toward phpstorm
 ## Basic Usage
 
 -   `:PhpMethod` ex: $router->resolve(); || generates undefined method in class
--   `:PhpClass`  ex: new Router(); or class Router extends|implements Route || generates the undefined class, trait, interface, enums with with proper namespace also creates namespace for the current file
+-   `:PhpClass`  ex: new Router(); or class Router extends|implements Route || generates the undefined class, trait, interface, enums with with proper namespace also creates use statement for the current file
 -   `:PhpScripts` runs composer scripts
 -   `:PhpNamespace` generates namespace for the file
--   `:PhpGetSet` -- public array $routes =[]; generates getter setter or both cursor variable.
--   `:PhpRefactor` -- inline function/method selected text -- more will be added
+-   `:PhpGetSet` -- public array $routes =[]; generates getter setter or both on cursor
+-   `:PhpRefactor` -- inline selected text to function/method  -- more will be added
 
 ## Install    -- no default keymaps
 
@@ -31,7 +31,7 @@ Neovim PhpUtils - one step toward phpstorm
     },
     config = function()
       require('phptools').setup({
-        ui = true, -- default is false
+        ui = false, -- default is false if you have stevearc/dressing.nvim or something similar keep it false
       })
     end
 }
@@ -57,8 +57,8 @@ Neovim PhpUtils - one step toward phpstorm
 
 ## Check Out
 
-Laravel Goto Blade/Components [larago.nvim](https://github.com/ccaglak/larago.nvim).
-PHP Namespace Resolve [namespace.nvim](https://github.com/ccaglak/namespace.nvim).
+- Laravel Goto Blade/Components [larago.nvim](https://github.com/ccaglak/larago.nvim).
+- PHP Namespace Resolve [namespace.nvim](https://github.com/ccaglak/namespace.nvim).
 
 
 ## Inspired
