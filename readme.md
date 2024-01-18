@@ -9,6 +9,8 @@ Neovim PhpUtils - one step toward phpstorm
 -   `:PhpClass`  ex: new Router(); or class Router extends|implements Route || generates the undefined class, trait, interface, enums with with proper namespace also creates namespace for the current file
 -   `:PhpScripts` runs composer scripts
 -   `:PhpNamespace` generates namespace for the file
+-   `:PhpGetSet` -- public array $routes =[]; generates getter setter or both cursor variable.
+-   `:PhpRefactor` -- inline function/method selected text -- more will be added
 
 ## Install    -- no default keymaps
 
@@ -21,10 +23,17 @@ Neovim PhpUtils - one step toward phpstorm
         { "<leader>lc", "<cmd>PhpClass<cr>"},
         { "<leader>ls", "<cmd>PhpScripts<cr>"},
         { "<leader>ln", "<cmd>PhpNamespace<cr>"},
+        { "<leader>lg", "<cmd>PhpGetSet<cr>"},
+        { "<leader>lr", "<cmd>PhpRefactor<cr>"},
     },
     dependencies = {
         "nvim-lua/plenary.nvim"
-    }
+    },
+    config = function()
+      require('phptools').setup({
+        ui = true, -- default is false
+      })
+    end
 }
 
 ```
@@ -40,10 +49,8 @@ Neovim PhpUtils - one step toward phpstorm
 - append to codeactions
 - laravel artisan command center
 - ability make method public/protected/private
-- getter/setters generaters ???????
 - custom template per directory base :? in Controller directory, controller template is generated
 - run tests (run all, filter, file, line)
-- vim.ui.select and input overwrite telescope
 
 ## Known bugs
 -   Let me know if you have any edge cases
