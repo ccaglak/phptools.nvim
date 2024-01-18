@@ -1,6 +1,6 @@
-## phpUtils.nvim
+## PhpTools.nvim
 
-Neovim PhpUtils - one step toward phpstorm
+Neovim PhpTools - one step toward phpstorm
 **
 
 ## Basic Usage
