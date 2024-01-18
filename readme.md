@@ -31,7 +31,7 @@ Neovim PhpUtils - one step toward phpstorm
     },
     config = function()
       require('phptools').setup({
-        ui = false, -- default is false if you have stevearc/dressing.nvim or something similar keep it false
+        ui = true, -- default is false if you have stevearc/dressing.nvim or something similar keep it false
       })
     end
 }
