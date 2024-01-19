@@ -3,4 +3,4 @@
 /.gitignore         export-ignore
 /phpunit.xml.dist   export-ignore
 /assets             export-ignore
-/phptools.png
+/phpstool.png
