@@ -11,25 +11,29 @@ function Refactor:new()
   return t
 end
 
-
 --
 --
 --
 function Refactor:run()
-  --
-
-  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", false, true, true), "nx", false)
-  vim.cmd([['<,'>delete z]])
   local M = Refactor:new()
-  vim.ui.select({ "funcInline", "methodInline" }, { prompt = "Select Refactor:" }, function(choice)
+  --
+  local methods = {}
+  local mode = vim.api.nvim_get_mode()
+  if mode.mode == "V" or mode.mode == "v" then
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", false, true, true), "nx", false)
+    vim.cmd([['<,'>delete z]])
+    table.insert(methods, { "funcInline", "funcToFile", "methodToFile", "methodInline" })
+  end
+  if #methods == 0 then
+    return
+  end
+  vim.ui.select(methods, { prompt = "Select Refactor:" }, function(choice)
     if choice == nil then
-      vim.cmd([[put z]])
       return
     end
     if choice == "funcInline" or choice == "methodInline" then
       vim.ui.input({ prompt = "Function Name: ", relative = "editor" }, function(name)
         if choice == nil then
-          vim.cmd([[put z]])
           return
         end
         if choice == "methodInline" then

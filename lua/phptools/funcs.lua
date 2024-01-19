@@ -1,21 +1,4 @@
 local uv = vim.uv or vim.loop
----- got to find home for these funcs
-local get_sep = function()
-  local win = uv.os_uname().sysname == "Darwin" or "Linux"
-  return win and "/" or "\\"
-end
-
-local get_root = function()
-  local root = vim.fs.find(
-    { ".git", "composer.json", "vendor", "package.json" },
-    { path = vim.api.nvim_buf_get_name(0), upward = true }
-  )[1]
-  root = root and vim.fs.dirname(root) or uv.cwd()
-  return root
-end
-_G.root = get_root()
-_G.sep = get_sep()
---
 function string.starts(String, Start)
   return string.sub(String, 1, string.len(Start)) == Start
 end
@@ -75,6 +58,27 @@ function io.pathinfo(path)
     extname = extname,
   }
 end
+
+---- got to find home for these funcs
+local get_sep = function()
+  local win = uv.os_uname().sysname == "Darwin" or "Linux"
+  return win and "/" or "\\"
+end
+
+_G.sep = get_sep()
+local get_root = function()
+  local root = vim.fs.find(
+    { ".git", "composer.json", "vendor", "package.json" },
+    { path = vim.api.nvim_buf_get_name(0), upward = true }
+  )[1]
+  root = root and vim.fs.dirname(root) or uv.cwd()
+  if not string.ends(root, sep) then
+    root = root .. sep
+  end
+  return root
+end
+_G.root = get_root()
+--
 
 -- local function find_root(markers, path)
 --   path = path or vim.api.nvim_buf_get_name(0)
