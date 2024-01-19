@@ -3,6 +3,10 @@
 Neovim PhpTools - one step toward phpstorm
 **
 
+
+https://github.com/ccaglak/phptools.nvim/assets/98365888/0ceb336d-c18c-470d-bd35-d7b703a04d29
+
+
 ## Basic Usage
 
 -   `:PhpMethod` ex: $router->resolve(); || generates undefined method in class
