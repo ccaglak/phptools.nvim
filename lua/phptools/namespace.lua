@@ -1,5 +1,4 @@
 local composer = require("phptools.composer")
-require("phptools.funcs")
 local M = {}
 
 function M:run()
@@ -46,12 +45,12 @@ function M:get_insertion_point()
     end
 
     if
-      line:find("^class")
-      or line:find("^final")
-      or line:find("^interface")
-      or line:find("^abstract")
-      or line:find("^trait")
-      or line:find("^enum")
+        line:find("^class")
+        or line:find("^final")
+        or line:find("^interface")
+        or line:find("^abstract")
+        or line:find("^trait")
+        or line:find("^enum")
     then
       break
     end
@@ -59,4 +58,5 @@ function M:get_insertion_point()
 
   return insertion_point or 3
 end
+
 return M

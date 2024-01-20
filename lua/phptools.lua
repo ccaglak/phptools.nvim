@@ -5,6 +5,8 @@ local namespace = require("phptools.namespace")
 local getset = require("phptools.getset")
 local scripts = require("phptools.composer")
 local refactor = require("phptools.refactor")
+local artisan = require("phptools.artisan")
+require("phptools.funcs")
 
 ---@class Config
 ---@field opt string
@@ -47,5 +49,9 @@ end
 
 M.refactor = function()
   refactor:run()
+end
+
+M.artisan = function()
+  artisan:run()
 end
 return M

@@ -28,15 +28,16 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/0ceb336d-c18c-470d-bd35
         { "<leader>ls", "<cmd>PhpScripts<cr>"},
         { "<leader>ln", "<cmd>PhpNamespace<cr>"},
         { "<leader>lg", "<cmd>PhpGetSet<cr>"},
-        { "<leader>lr", "<cmd>PhpRefactor<cr>"},
+        { "<leader>la", "<cmd>PhpArtisan<cr>"},
     },
     dependencies = {
         "nvim-lua/plenary.nvim"
     },
     config = function()
       require('phptools').setup({
-        ui = true, -- default is false if you have stevearc/dressing.nvim or something similar keep it false
+        ui = false, -- default is false if you have stevearc/dressing.nvim or something similar keep it false
       })
+      vim.keymap.set('v','<leader>lr',':PhpRefactor<cr>')
     end
 }
 

@@ -27,7 +27,7 @@ function Refactor:run()
   if #methods == 0 then
     return
   end
-  vim.ui.select(methods, { prompt = "Select Refactor:" }, function(choice)
+  vim.ui.select(unpack(methods), { prompt = "Select Refactor:" }, function(choice)
     if choice == nil then
       return
     end

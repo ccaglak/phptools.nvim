@@ -1,12 +1,10 @@
 local tree = require("phptools.treesitter")
-require("phptools.funcs")
 local Etter = {}
 function Etter:new()
   local t = setmetatable({}, { __index = Etter })
   return t
 end
---
---
+
 --
 --
 function Etter:run()
@@ -24,6 +22,7 @@ function Etter:run()
     M:add_to_buffer(tmpl)
   end)
 end
+
 --
 --
 --

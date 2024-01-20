@@ -1,7 +1,6 @@
 local tree = require("phptools.treesitter")
 local namespace = require("phptools.namespace")
 local composer = require("phptools.composer")
-require("phptools.funcs")
 local Class = {}
 
 function Class:new()
@@ -92,7 +91,9 @@ function Class:run()
       dir = dir .. sep
     end
 
-    vim.fn.mkdir(root .. dir, "p") -- create directory
+    if vim.fn.isdirectory(dir) == 0 then
+      vim.fn.mkdir(root .. dir, "p") -- create directory
+    end
 
     M.file_ns = namespace:gen(dir, prefix, src)
     local current_ns = namespace:gen(dir, prefix, src, M.class_name.text)
@@ -142,6 +143,7 @@ function Class:add_template_to_buffer(lines, bufnr)
   vim.fn.bufload(bufnr)
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
 end
+
 --
 --
 --
