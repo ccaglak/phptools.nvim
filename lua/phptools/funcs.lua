@@ -10,7 +10,7 @@ end
 
 ---- got to find home for these funcs
 local get_sep = function()
-  local win = vim.uv.os_uname().sysname == "Darwin" or "Linux"
+  local win = uv.os_uname().sysname == "Darwin" or "Linux"
   return win and "/" or "\\"
 end
 
@@ -20,7 +20,7 @@ local get_root = function()
     { ".git", "composer.json", "vendor", "package.json" },
     { path = vim.api.nvim_buf_get_name(0), upward = true }
   )[1]
-  root = root and vim.fs.dirname(root) or vim.uv.cwd()
+  root = root and vim.fs.dirname(root) or uv.cwd()
   if not string.ends(root, sep) then
     root = root .. sep
   end
@@ -80,4 +80,3 @@ function io.pathinfo(path)
     extname = extname,
   }
 end
-

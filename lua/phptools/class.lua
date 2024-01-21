@@ -91,6 +91,10 @@ function Class:run()
       dir = dir .. sep
     end
 
+    if not string.ends(root, sep) then
+      root = root .. sep
+    end
+
     if vim.fn.isdirectory(dir) == 0 then
       vim.fn.mkdir(root .. dir, "p") -- create directory
     end

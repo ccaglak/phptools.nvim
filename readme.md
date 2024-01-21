@@ -15,6 +15,7 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/0ceb336d-c18c-470d-bd35
 -   `:PhpNamespace` generates namespace for the file
 -   `:PhpGetSet` -- public array $routes =[]; generates getter setter or both on cursor
 -   `:PhpRefactor` -- inline selected text to function/method  -- more will be added
+-   `:PhpArtisan` -- Laravel artisan commands
 
 ## Install    -- no default keymaps
 
