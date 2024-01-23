@@ -4,7 +4,11 @@ Neovim PhpTools - one step toward phpstorm
 **
 
 
-https://github.com/ccaglak/phptools.nvim/assets/98365888/0ceb336d-c18c-470d-bd35-d7b703a04d29
+
+
+https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e-38bc39252107
+
+
 
 
 ## Basic Usage
