@@ -14,7 +14,7 @@ function Etter:run()
     return
   end
 
-  vim.ui.select({ "Set", "Get", "Get/Set" }, { prompt = "Select a file:" }, function(choice)
+  vim.ui.select({ "Set", "Get", "Get/Set" }, { prompt = "Select Method:" }, function(choice)
     if choice == nil then
       return
     end

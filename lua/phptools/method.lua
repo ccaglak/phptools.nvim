@@ -32,6 +32,9 @@ function Method:run()
   if M.parent == nil then
     return
   end
+  if M.variable == nil then
+    return
+  end
   M:find_file(M.method_position(), "textDocument/definition")
   if #M.file_location >= 1 then
     vim.lsp.util.jump_to_location(M.file_location[1], "utf-8")
@@ -107,12 +110,46 @@ function Method:find_file(params, method)
   end
 end
 
+local function await(cond, after)
+  if not cond() then
+    vim.defer_fn(function()
+      await(cond, after)
+    end, 250)
+    return
+  end
+  after()
+end
 --
 --
 --
 function Method:get_position()
   self.parent = tree.parent("member_call_expression")
   if self.parent == nil then
+    return
+  end
+
+  self.parenthe = tree.child_type(self.parent.node, "parenthesized_expression")
+  if self.parenthe ~= nil then
+    self.method = tree.child(self.parent.node, "name")
+    if self.method.node == nil then
+      return
+    end
+    vim.fn.cursor({ self.parenthe.range[1] + 1, self.parenthe.range[2] + 5 })
+    local bn = vim.api.nvim_get_current_buf()
+    require("phptools.class"):run()
+    local lines = {
+      "    public function " .. self.method.text .. "()",
+      "    {",
+      "         ",
+      "    }",
+    }
+    await(function()
+      if vim.api.nvim_get_current_buf() ~= bn then
+        return true
+      end
+    end, function()
+      Method:add_to_buffer(lines, 0)
+    end)
     return
   end
 
