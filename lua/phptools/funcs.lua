@@ -1,5 +1,3 @@
-local uv = vim.uv or vim.loop
-
 function string.starts(String, Start)
   return string.sub(String, 1, string.len(Start)) == Start
 end
@@ -10,7 +8,7 @@ end
 
 ---- got to find home for these funcs
 local get_sep = function()
-  local win = uv.os_uname().sysname == "Darwin" or "Linux"
+  local win = vim.uv.os_uname().sysname == "Darwin" or "Linux"
   return win and "/" or "\\"
 end
 
@@ -20,7 +18,7 @@ local get_root = function()
     { ".git", "composer.json", "vendor", "package.json" },
     { path = vim.api.nvim_buf_get_name(0), upward = true }
   )[1]
-  root = root and vim.fs.dirname(root) or uv.cwd()
+  root = root and vim.fs.dirname(root) or vim.uv.cwd()
   if not string.ends(root, sep) then
     root = root .. sep
   end
@@ -60,7 +58,7 @@ function io.pathinfo(path)
   local extpos = pos + 1
   while pos > 0 do
     local b = string.byte(path, pos)
-    if b == 46 then -- 46 = char "."
+    if b == 46 then     -- 46 = char "."
       extpos = pos
     elseif b == 47 then -- 47 = char "/"
       break

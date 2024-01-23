@@ -6,12 +6,13 @@ local getset = require("phptools.getset")
 local scripts = require("phptools.composer")
 local refactor = require("phptools.refactor")
 local artisan = require("phptools.artisan")
+local create = require("phptools.create")
 require("phptools.funcs")
 
 ---@class Config
 ---@field opt string
 local config = {
-  ui = false,
+    ui = false,
 }
 
 local M = {}
@@ -21,37 +22,40 @@ M.config = config
 
 ---@param args Config?
 M.setup = function(args)
-  M.config = vim.tbl_deep_extend("force", M.config, args or {})
-  if M.config.ui == true then
-    require("phptools.ui")
-  end
+    M.config = vim.tbl_deep_extend("force", M.config, args or {})
+    if M.config.ui == true then
+        require("phptools.ui")
+    end
 end
 
 M.method = function()
-  method:run()
+    method:run()
 end
 
 M.class = function()
-  class:run()
+    class:run()
 end
 
 M.namespace = function()
-  namespace:run()
+    namespace:run()
 end
 
 M.getset = function()
-  getset:run()
+    getset:run()
 end
 
 M.scripts = function()
-  scripts:scripts()
+    scripts:scripts()
 end
 
 M.refactor = function()
-  refactor:run()
+    refactor:run()
 end
 
 M.artisan = function()
-  artisan:run()
+    artisan:run()
+end
+M.create = function()
+    create:run()
 end
 return M

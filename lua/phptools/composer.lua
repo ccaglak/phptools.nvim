@@ -1,5 +1,4 @@
 local M = {}
-local uv = vim.uv or vim.loop
 M.composer = function()
   local cf = M.composer_file_load()
   if cf == nil then
@@ -17,8 +16,8 @@ M.composer_file_load = function()
     return M.cmpsr
   end
 
-  local composer = uv.cwd() .. "/composer.json"
-  local exists = uv.fs_stat(composer)
+  local composer = vim.uv.cwd() .. "/composer.json"
+  local exists = vim.uv.fs_stat(composer)
   if not exists then
     return
   end
