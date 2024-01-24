@@ -62,7 +62,10 @@ end
 function Etter:get_position()
   self.parent = tree.parent("property_declaration")
   if self.parent == nil then
-    return
+    self.parent = tree.parent("property_promotion_parameter")
+    if self.parent == nil then
+      return
+    end
   end
 
   -- self.visibility = tree.child_type(self.parent.node, "visibility_modifier")
@@ -74,13 +77,18 @@ function Etter:get_position()
   if self.union.node == nil then
     return
   end
-
-  self.property = tree.children(self.parent.node, "property_element")
-  if self.property.node == nil then
+  if self.parent.type ~= "property_promotion_parameter" then
+    self.property = tree.children(self.parent.node, "property_element")
+    if self.property.node == nil then
+      return
+    end
+    self.variable = tree.children(self.property.node, "variable_name")
+    if self.variable.node == nil then
+      return
+    end
     return
   end
-
-  self.variable = tree.children(self.property.node, "variable_name")
+  self.variable = tree.children(self.parent.node, "variable_name")
   if self.variable.node == nil then
     return
   end
