@@ -36,7 +36,7 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
     },
     config = function()
       require('phptools').setup({
-        ui = false, -- if you dont have stevearc/dressing.nvim or something similar keep it false or else true
+        ui = false, -- if you have stevearc/dressing.nvim or something similar keep it false or else true
       })
       vim.keymap.set('v','<leader>lr',':PhpRefactor<cr>')
     end
@@ -48,7 +48,7 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
 
 - pleanery.nvim
 - nvim-treesitter (`:TSInstall php json`)
-- recommended stevearc/dressing.nvim
+- recommended stevearc/dressing.nvim but optional (read config)
 
 ## Features to be added
 

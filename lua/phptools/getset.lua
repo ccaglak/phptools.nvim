@@ -73,9 +73,12 @@ function Etter:get_position()
   --   return
   -- end
 
-  self.union = tree.children(self.parent.node, "union_type")
+  self.union = tree.children(self.parent.node, "primitive_type")
   if self.union.node == nil then
-    return
+    self.union = tree.children(self.parent.node, "union_type")
+    if self.union.node == nil then
+      return
+    end
   end
   if self.parent.type ~= "property_promotion_parameter" then
     self.property = tree.children(self.parent.node, "property_element")
