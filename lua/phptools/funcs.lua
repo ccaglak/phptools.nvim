@@ -13,19 +13,8 @@ local get_sep = function()
 end
 
 _G.sep = get_sep()
-local get_root = function()
-  local root = vim.fs.find(
-    { ".git", "composer.json", "vendor", "package.json" },
-    { path = vim.api.nvim_buf_get_name(0), upward = true }
-  )[1]
-  root = root and vim.fs.dirname(root) or vim.uv.cwd()
-  if not string.ends(root, sep) then
-    root = root .. sep
-  end
-  return root
-end
-_G.root = get_root()
---
+
+_G.root = require('phptools.root').root() .. sep
 
 function string.pascalcase(str, deli)
   deli = deli or "\\"

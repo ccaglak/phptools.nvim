@@ -94,6 +94,7 @@ M.art = {
   "make:seeder",
   "make:test",
   "make:view",
+  "make:volt",
   -- "migrate",
   "migrate:fresh",
   "migrate:install",
@@ -170,32 +171,32 @@ function M.select(items, opts, on_choice)
   on_choice = on_choice or function() end
 
   pickers
-      .new({
-        prompt_title = opts.prompt or "",
-        finder = finders.new_table({
-          results = items,
-          entry_maker = function(item)
-            local text = (opts.format_item or tostring)(item)
-            return { display = text, ordinal = text, value = item }
-          end,
-        }),
-        sorter = conf.generic_sorter(),
-        layout_strategy = "horizontal",
-        layout_config = {
-          horizontal = { width = 60, height = 16 },
-        },
-        results_title = false,
-        attach_mappings = function()
-          action_set.select:replace(function(prompt_bufnr)
-            actions.close(prompt_bufnr, false)
-            local selected = state.get_selected_entry() or {}
-            on_choice(selected.value, selected.index)
-          end)
-
-          return true
+    .new({
+      prompt_title = opts.prompt or "",
+      finder = finders.new_table({
+        results = items,
+        entry_maker = function(item)
+          local text = (opts.format_item or tostring)(item)
+          return { display = text, ordinal = text, value = item }
         end,
-      })
-      :find()
+      }),
+      sorter = conf.generic_sorter(),
+      layout_strategy = "horizontal",
+      layout_config = {
+        horizontal = { width = 60, height = 16 },
+      },
+      results_title = false,
+      attach_mappings = function()
+        action_set.select:replace(function(prompt_bufnr)
+          actions.close(prompt_bufnr, false)
+          local selected = state.get_selected_entry() or {}
+          on_choice(selected.value, selected.index)
+        end)
+
+        return true
+      end,
+    })
+    :find()
 end
 
 return M

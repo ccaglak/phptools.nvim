@@ -1,18 +1,10 @@
 -- main module file
-local method = require("phptools.method")
-local class = require("phptools.class")
-local namespace = require("phptools.namespace")
-local getset = require("phptools.getset")
-local scripts = require("phptools.composer")
-local refactor = require("phptools.refactor")
-local artisan = require("phptools.artisan")
-local create = require("phptools.create")
 require("phptools.funcs")
 
 ---@class Config
 ---@field opt string
 local config = {
-    ui = false,
+  ui = false,
 }
 
 local M = {}
@@ -22,40 +14,41 @@ M.config = config
 
 ---@param args Config?
 M.setup = function(args)
-    M.config = vim.tbl_deep_extend("force", M.config, args or {})
-    if M.config.ui == true then
-        require("phptools.ui")
-    end
+  M.config = vim.tbl_deep_extend("force", M.config, args or {})
+  if M.config.ui == true then
+    require("phptools.ui")
+  end
 end
 
 M.method = function()
-    method:run()
+  require("phptools.method"):run()
 end
 
 M.class = function()
-    class:run()
+  require("phptools.class"):run()
 end
 
 M.namespace = function()
-    namespace:run()
+  require("phptools.namespace"):run()
 end
 
 M.getset = function()
-    getset:run()
+  require("phptools.getset"):run()
 end
 
 M.scripts = function()
-    scripts:scripts()
+  require("phptools.composer"):scripts()
 end
 
 M.refactor = function()
-    refactor:run()
+  require("phptools.refactor"):run()
 end
 
 M.artisan = function()
-    artisan:run()
+  require("phptools.artisan"):run()
 end
 M.create = function()
-    create:run()
+  require("phptools.create"):run()
 end
+
 return M

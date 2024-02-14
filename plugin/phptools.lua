@@ -7,5 +7,5 @@ vim.api.nvim_create_user_command("PhpRefactor", require("phptools").refactor, {}
 vim.api.nvim_create_user_command("PhpArtisan", require("phptools").artisan, {})
 vim.api.nvim_create_user_command("PhpCreate", require("phptools").create, {})
 if not vim.uv then
-    vim.uv = vim.loop
+  vim.uv = vim.loop
 end

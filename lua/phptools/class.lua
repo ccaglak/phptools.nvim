@@ -47,7 +47,7 @@ function Class:run()
   M.parent.text = M.parent.text:gsub("%b()", "")
   M.class_name = tree.children(M.parent.node, "name")
 
-  --enums
+  --enums TODO bug -> HomeController::class
   if M.parent.type == "class_constant_access_expression" then
     ---@diagnostic disable-next-line: missing-parameter
     local enum_node = M.parent.node:child()
@@ -161,10 +161,10 @@ end
 --
 function Class:get_parent()
   local ts_parents = {
-    "object_creation_expression", --class
-    "base_clause", -- extends
-    "class_interface_clause", -- interface
-    "use_declaration", -- trait
+    "object_creation_expression",       --class
+    "base_clause",                      -- extends
+    "class_interface_clause",           -- interface
+    "use_declaration",                  -- trait
     "class_constant_access_expression", -- enum
   }
 
@@ -237,12 +237,12 @@ function Class:get_insertion_point()
     end
 
     if
-      line:find("^class")
-      or line:find("^final")
-      or line:find("^interface")
-      or line:find("^abstract")
-      or line:find("^trait")
-      or line:find("^enum")
+        line:find("^class")
+        or line:find("^final")
+        or line:find("^interface")
+        or line:find("^abstract")
+        or line:find("^trait")
+        or line:find("^enum")
     then
       break
     end

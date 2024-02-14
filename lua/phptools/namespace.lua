@@ -26,7 +26,7 @@ function M:gen(dir, prefix, src, filename)
 end
 
 function M:add_to_current_buffer(lines)
-  local insertion_line = M:get_insertion_point()
+  local insertion_line = M:get_insertion_point() - 1
   vim.api.nvim_buf_set_lines(0, insertion_line, insertion_line, true, lines)
   vim.api.nvim_buf_call(0, function()
     vim.cmd("silent! write! | edit")
