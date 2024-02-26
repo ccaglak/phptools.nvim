@@ -52,6 +52,8 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
 
 ## Features to be added
 
+-- Feature freeze until all bugs ironed out
+
 - custom templates
 - append to codeactions
 - ability make method public/protected/private
