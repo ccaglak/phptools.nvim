@@ -28,7 +28,6 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
         { "<leader>ls", "<cmd>PhpScripts<cr>"},
         { "<leader>ln", "<cmd>PhpNamespace<cr>"},
         { "<leader>lg", "<cmd>PhpGetSet<cr>"},
-        { "<leader>la", "<cmd>PhpArtisan<cr>"},
         { "<leader>lf", "<cmd>PhpCreate<cr>"},
     },
     dependencies = {
