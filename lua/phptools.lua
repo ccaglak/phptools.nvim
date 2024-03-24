@@ -44,9 +44,6 @@ M.refactor = function()
   require("phptools.refactor"):run()
 end
 
-M.artisan = function()
-  require("phptools.artisan"):run()
-end
 M.create = function()
   require("phptools.create"):run()
 end
