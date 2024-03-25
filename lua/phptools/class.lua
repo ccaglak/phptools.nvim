@@ -23,7 +23,7 @@ Class.templates = {
     class_interface_clause = "interface",
     base_clause = "class",
     object_creation_expression = "class",
-    -- scoped_call_expression = "class",
+    scoped_call_expression = "class",
     use_declaration = "trait",
     class_constant_access_expression = "enum",
 }
@@ -163,11 +163,11 @@ end
 function Class:get_parent()
     local ts_parents = {
         "object_creation_expression",       --class
-        "scoped_call_expression",           --class
         "base_clause",                      -- extends
         "class_interface_clause",           -- interface
         "use_declaration",                  -- trait
         "class_constant_access_expression", -- enum
+        "scoped_call_expression",           --class
     }
 
     for _, type in ipairs(ts_parents) do
