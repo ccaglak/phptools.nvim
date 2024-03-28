@@ -18,7 +18,7 @@ function Create:run()
   end
   local file_ns = namespace:gen(dir, prefix, src)
 
-  vim.ui.select({ "class", "trait", "interface", "enum" }, {
+  vim.ui.select({ "class", "trait", "interface", "enum", "abstract" }, {
     prompt = "Create",
   }, function(selection)
     if not selection then
@@ -45,6 +45,9 @@ function Create:template_builder(filename, template, file_ns)
   }
   table.insert(tmpl, file_ns)
   table.insert(tmpl, "")
+  if template == "abstract" then
+    template = "abstract class"
+  end
   table.insert(tmpl, template .. " " .. filename)
   table.insert(tmpl, "{")
   table.insert(tmpl, "        //")

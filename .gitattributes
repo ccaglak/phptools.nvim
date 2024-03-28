@@ -1,6 +1,4 @@
 /.github            export-ignore
 /.gitattributes     export-ignore
 /.gitignore         export-ignore
-/phpunit.xml.dist   export-ignore
-/assets             export-ignore
 /phpstool.png       export-ignore

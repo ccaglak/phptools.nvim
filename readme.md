@@ -5,8 +5,11 @@ Neovim PhpTools - one step toward phpstorm
 
 https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e-38bc39252107
 
-## Basic Usage
+## Info
+-- There will be new features, improvements and bugfixes at least few times a week.
+-- if you have feature request or want to contribute please do. thanks
 
+## Basic Usage
 - `:PhpMethod` ex: $router->resolve(); || generates undefined method in class
 - `:PhpClass` ex: new Router(); or class Router extends|implements Route || generates the undefined class, trait, interface, enums with with proper namespace also creates use statement for the current file
 - `:PhpScripts` runs composer scripts
