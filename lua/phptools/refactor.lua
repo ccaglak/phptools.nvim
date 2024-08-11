@@ -21,8 +21,8 @@ function Refactor:run()
   local mode = vim.api.nvim_get_mode()
   if mode.mode == "V" or mode.mode == "v" then
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", false, true, true), "nx", false)
-    vim.cmd([['<,'>delete z]])
     table.insert(methods, { "funcInline", "funcToFile", "methodToFile", "methodInline" })
+    vim.cmd([['<,'>delete z]])
   end
   if #methods == 0 then
     return
@@ -48,6 +48,7 @@ end
 
 function Refactor:funcInline(text, visibility)
   local lines = {}
+  local nr = 1
   table.insert(lines, "    function " .. text .. "()")
   local lastline = vim.api.nvim_buf_line_count(0)
   if visibility then
@@ -60,7 +61,18 @@ function Refactor:funcInline(text, visibility)
   table.insert(lines, "         ")
   table.insert(lines, "    }")
   Refactor:add_to_buffer(lines, lastline)
+
+  if visibility then
+    nr = 2
+  end
+
+  vim.fn.cursor({ lastline - nr, 9 })
+
   vim.cmd([[put z]])
+
+  vim.api.nvim_buf_call(0, function()
+    vim.cmd("silent! write! | edit")
+  end)
 end
 
 function Refactor:add_to_buffer(lines, lastline, bufnr)
@@ -75,7 +87,7 @@ function Refactor:add_to_buffer(lines, lastline, bufnr)
   vim.api.nvim_buf_call(0, function()
     vim.cmd("silent! write! | edit")
   end)
-  vim.fn.cursor({ lastline + 2, 9 })
+  vim.fn.cursor({ lastline + 1, 9 })
 end
 
 return Refactor
