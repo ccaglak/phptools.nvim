@@ -14,12 +14,12 @@ end
 
 _G.sep = get_sep()
 
-_G.root = require('phptools.root').root() .. sep
+_G.root = require("phptools.root").root() .. sep
 
 function string.pascalcase(str, deli)
   deli = deli or "\\"
   local pascalCase = ""
-  for match in str:gmatch("[a-zA-Z0-9]+") do
+  for match in str:gmatch("[a-zA-Z0-9_-]+") do
     pascalCase = pascalCase .. match:gsub("^.", string.upper) .. deli
   end
   return pascalCase:sub(1, -2)
@@ -47,7 +47,7 @@ function io.pathinfo(path)
   local extpos = pos + 1
   while pos > 0 do
     local b = string.byte(path, pos)
-    if b == 46 then     -- 46 = char "."
+    if b == 46 then -- 46 = char "."
       extpos = pos
     elseif b == 47 then -- 47 = char "/"
       break

@@ -7,6 +7,9 @@ M.composer = function()
 
   local auto = cf.autoload["psr-4"]
   for index, value in pairs(auto) do -- Todo multiple
+    if string.ends(value, sep) then
+      value = value:sub(1, -2)
+    end
     return index, value
   end
 end

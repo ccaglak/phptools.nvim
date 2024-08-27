@@ -12,10 +12,13 @@ function Create:run()
   local filename = vim.fn.fnamemodify(vim.fn.expand("%:t"), ":r")
   local prefix, src = composer.composer()
   local dir = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p:h")
-  dir = dir:gsub(root, "")
+
+  dir = dir:gsub("-", "!") -- replaced special char (-) with (!)
+  dir = dir:gsub(root:gsub("-", "!"), "")
   if dir == sep or dir == "." then
     dir = "src"
   end
+
   local file_ns = namespace:gen(dir, prefix, src)
 
   vim.ui.select({ "class", "trait", "interface", "enum", "abstract" }, {

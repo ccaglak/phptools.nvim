@@ -4,7 +4,8 @@ local M = {}
 function M:run()
   local filename = vim.api.nvim_buf_get_name(0)
   local pathinfo = io.pathinfo(filename)
-  local dir = pathinfo.dirname:gsub(root, "")
+  pathinfo.dirname = pathinfo.dirname:gsub("-", "!")
+  local dir = pathinfo.dirname:gsub(root:gsub("-", "!"), "")
   if dir == "" then
     return
   end
@@ -45,12 +46,12 @@ function M:get_insertion_point()
     end
 
     if
-        line:find("^class")
-        or line:find("^final")
-        or line:find("^interface")
-        or line:find("^abstract")
-        or line:find("^trait")
-        or line:find("^enum")
+      line:find("^class")
+      or line:find("^final")
+      or line:find("^interface")
+      or line:find("^abstract")
+      or line:find("^trait")
+      or line:find("^enum")
     then
       break
     end
