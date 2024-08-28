@@ -29,7 +29,7 @@ function Etter:run()
       return
     end
 
-    -- find something better
+    -- Todo find something better
     local vari = {}
     if choice == "Get" then
       vari = {
@@ -56,9 +56,9 @@ function Etter:run()
       print("No results")
       return
     end
+
     local vbool = false
     for gn, gs in pairs(vari) do
-      P(gn)
       for _, response in ipairs(results_lsp) do
         if response.result then
           for _, result in ipairs(flatten_symbols(response.result)) do

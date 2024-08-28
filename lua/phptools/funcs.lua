@@ -76,13 +76,3 @@ function io.pathinfo(path)
     extname = extname,
   }
 end
-
-function _G.await(cond, after, time)
-  if not cond() then
-    vim.defer_fn(function()
-      await(cond, after)
-    end, time or 250)
-    return
-  end
-  after()
-end
