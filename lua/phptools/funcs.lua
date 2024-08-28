@@ -37,6 +37,15 @@ function string.ucfirst(str)
   return string.upper(string.sub(str, 1, 1)) .. string.sub(str, 2)
 end
 
+function string.lcfirst(str)
+  return string.lower(string.sub(str, 1, 1)) .. string.sub(str, 2)
+end
+
+-- delete first char
+function string.dltfirst(str)
+  return str:sub(2)
+end
+
 function string.trim(input)
   input = string.gsub(input, "^[ \t\n\r]+", "")
   return string.gsub(input, "[ \t\n\r]+$", "")
@@ -66,4 +75,14 @@ function io.pathinfo(path)
     basename = basename,
     extname = extname,
   }
+end
+
+function _G.await(cond, after, time)
+  if not cond() then
+    vim.defer_fn(function()
+      await(cond, after)
+    end, time or 250)
+    return
+  end
+  after()
 end

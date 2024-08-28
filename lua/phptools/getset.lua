@@ -5,6 +5,16 @@ function Etter:new()
   return t
 end
 
+local function flatten_symbols(symbols, result)
+  result = result or {}
+  for _, symbol in ipairs(symbols) do
+    table.insert(result, symbol)
+    if symbol.children then
+      flatten_symbols(symbol.children, result)
+    end
+  end
+  return result
+end
 --
 --
 function Etter:run()
@@ -18,8 +28,52 @@ function Etter:run()
     if choice == nil then
       return
     end
-    local tmpl = M:template_builder(choice)
-    M:add_to_buffer(tmpl)
+
+    -- find something better
+    local vari = {}
+    if choice == "Get" then
+      vari = {
+        Get = "get" .. string.ucfirst(string.dltfirst(M.variable.text)),
+      }
+    end
+    if choice == "Set" then
+      vari = {
+        Set = "set" .. string.ucfirst(string.dltfirst(M.variable.text)),
+      }
+    end
+
+    if choice == "Get/Set" then
+      vari = {
+        Get = "get" .. string.ucfirst(string.dltfirst(M.variable.text)),
+        Set = "set" .. string.ucfirst(string.dltfirst(M.variable.text)),
+      }
+    end
+
+    local params = vim.lsp.util.make_position_params()
+    local results_lsp = vim.lsp.buf_request_sync(0, "textDocument/documentSymbol", params, 5000)
+
+    if not results_lsp or vim.tbl_isempty(results_lsp) then
+      print("No results")
+      return
+    end
+    local vbool = false
+    for gn, gs in pairs(vari) do
+      P(gn)
+      for _, response in ipairs(results_lsp) do
+        if response.result then
+          for _, result in ipairs(flatten_symbols(response.result)) do
+            if result.name == gs then
+              vbool = true
+            end
+          end
+        end
+      end
+
+      if vbool == false then
+        local tmpl = M:template_builder(string.ucfirst(gn))
+        M:add_to_buffer(tmpl)
+      end
+    end
   end)
 end
 
