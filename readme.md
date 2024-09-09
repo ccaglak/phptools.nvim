@@ -18,7 +18,6 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
 - `:PhpNamespace` generates namespace for the file
 - `:PhpGetSet` -- public array $routes =[]; generates getter setter or both on cursor
 - `:PhpRefactor` -- inline selected text to function/method -- more will be added
-- `:PhpArtisan` -- removed because felt like this should be plugin it self
 - `:PhpCreate` -- Create Class, Interface, Enum, or Trait in current file with namespace
 
 ## Install -- no default keymaps
