@@ -7,7 +7,7 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
 
 ## Info
 
--- There will be new features, improvements and bugfixes at least few times a week.
+-- thinking about rewriting the plugin.
 -- if you have feature request or want to contribute please do. thanks
 
 ## Basic Usage

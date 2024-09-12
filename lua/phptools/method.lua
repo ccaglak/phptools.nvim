@@ -45,6 +45,7 @@ function Method:run()
   if M.variable == nil then
     return
   end
+
   M:find_file(M.method_position(), "textDocument/definition")
   if #M.file_location >= 1 then
     vim.lsp.util.jump_to_location(M.file_location[1], "utf-8")
@@ -212,7 +213,11 @@ function Method:get_position()
     if self.method.node == nil then
       return
     end
-    vim.fn.cursor({ self.scoped.range[1] + 1, self.scoped.range[2] + 2 })
+    self.scope = tree.child(self.parent.node, "scope")
+    if self.scope.node == nil then
+      return
+    end
+    vim.fn.cursor({ self.scope.range[1] + 1, self.scope.range[2] + 2 })
 
     Method:find_file(Method.method_position(), "textDocument/definition")
     if #Method.file_location >= 1 then
