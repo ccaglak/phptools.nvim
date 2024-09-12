@@ -1,5 +1,4 @@
 local tree = require("phptools.treesitter")
-local ts, api = vim.treesitter, vim.api
 local Method = {}
 
 local function await(cond, after)
@@ -82,26 +81,35 @@ function Method:run()
         return true
       end
     end, function()
-      vim.fn.cursor({ M.method.range[1] + 2, M.method.range[2] + 2 })
-      require("phptools.method"):run()
+      vim.fn.cursor({ M.variable.range[1] + 2, M.variable.range[2] + 2 })
+      M:find_file(vim.lsp.util.make_position_params())
+      if #M.file_location ~= 0 then
+        M.file_path = M.file_location[1].uri:gsub("file://", "")
+      end
+
+      M:buffer()
     end)
     return
   end
 
-  if M.file_path == nil then
+  M:buffer()
+end
+
+function Method:buffer()
+  if self.file_path == nil then
     return
   end
 
-  local bufnr = M:get_buffer(M.file_path)
+  local bufnr = self:get_buffer(self.file_path)
 
   local lines = {
-    "    public function " .. M.method.text .. "()",
+    "    public function " .. self.method.text .. "()",
     "    {",
     "         //",
     "    }",
   }
 
-  M:add_to_buffer(lines, bufnr)
+  self:add_to_buffer(lines, bufnr)
 end
 
 --
