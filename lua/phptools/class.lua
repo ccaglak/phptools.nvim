@@ -49,7 +49,6 @@ function Class:run(method)
   M.parent.text = M.parent.text:gsub("%b()", "")
   M.class_name = tree.children(M.parent.node, "name")
 
-  --enums TODO bug -> HomeController::class
   if M.parent.type == "class_constant_access_expression" then
     ---@diagnostic disable-next-line: missing-parameter
     local enum_node = M.parent.node:child()
