@@ -128,6 +128,7 @@ function Class:run(method)
         vim.cmd("silent! wall! | edit")
       end)
       vim.fn.cursor({ row, 9 })
+      _G.class_current_bufnr = bufnr
     else
       vim.api.nvim_buf_call(0, function()
         vim.cmd("silent! wall! | edit")

@@ -198,7 +198,7 @@ function Method:get_position()
       "    }",
     }
     await(function()
-      if vim.api.nvim_get_current_buf() ~= bn then
+      if vim.api.nvim_get_current_buf() == _G.class_current_bufnr then
         return true
       end
     end, function()
@@ -230,11 +230,11 @@ function Method:get_position()
     local lines = {
       "    public static function " .. self.method.text .. "()",
       "    {",
-      "         ",
+      "         //",
       "    }",
     }
     await(function()
-      if vim.api.nvim_get_current_buf() ~= bn then
+      if vim.api.nvim_get_current_buf() == _G.class_current_bufnr then
         return true
       end
     end, function()
