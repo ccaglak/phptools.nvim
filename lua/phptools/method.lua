@@ -35,6 +35,15 @@ function Method:new()
   return t
 end
 
+function Method:lines()
+  return {
+    "    public function " .. self.method.text .. "()",
+    "    {",
+    "         //",
+    "    }",
+  }
+end
+
 function Method:run()
   local M = Method:new()
   _G.cdone = false
@@ -103,14 +112,7 @@ function Method:buffer()
 
   local bufnr = self:get_buffer(self.file_path)
 
-  local lines = {
-    "    public function " .. self.method.text .. "()",
-    "    {",
-    "         //",
-    "    }",
-  }
-
-  self:add_to_buffer(lines, bufnr)
+  self:add_to_buffer(self:lines(), bufnr)
 end
 
 --
@@ -189,20 +191,13 @@ function Method:get_position()
       return
     end
 
-    local bn = vim.api.nvim_get_current_buf()
     require("phptools.class"):run()
-    local lines = {
-      "    public function " .. self.method.text .. "()",
-      "    {",
-      "         ",
-      "    }",
-    }
     await(function()
       if vim.api.nvim_get_current_buf() == _G.class_current_bufnr then
         return true
       end
     end, function()
-      Method:add_to_buffer(lines, 0)
+      Method:add_to_buffer(self:lines(), 0)
     end)
     return
   end
@@ -225,20 +220,13 @@ function Method:get_position()
       return
     end
 
-    local bn = vim.api.nvim_get_current_buf()
     require("phptools.class"):run()
-    local lines = {
-      "    public static function " .. self.method.text .. "()",
-      "    {",
-      "         //",
-      "    }",
-    }
     await(function()
       if vim.api.nvim_get_current_buf() == _G.class_current_bufnr then
         return true
       end
     end, function()
-      Method:add_to_buffer(lines, 0)
+      Method:add_to_buffer(self:lines(), 0)
     end)
     return
   end
