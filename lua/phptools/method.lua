@@ -56,7 +56,7 @@ function Method:run()
     end
 
     M:find_file(M.method_position(), "textDocument/definition")
-    if #M.file_location >= 1 then
+    if self.file_location and #self.file_location >= 1 then
         vim.lsp.util.jump_to_location(M.file_location[1], "utf-8")
         return
     end
