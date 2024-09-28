@@ -5,6 +5,7 @@ require("phptools.funcs")
 ---@field opt string
 local config = {
   ui = false,
+  toggle_options = {},
 }
 
 local M = {}
@@ -18,6 +19,7 @@ M.setup = function(args)
   if M.config.ui == true then
     require("phptools.ui")
   end
+  require("phptools.toggle").setup(M.config.toggle_options)
 end
 
 M.method = function()
