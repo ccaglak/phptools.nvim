@@ -117,19 +117,12 @@ PhpTools.nvim includes a powerful toggle feature that enhances your PHP developm
 
 You can add custom toggle groups by passing a configuration table to the setup function:
 
-```lua
-require('phptools.toggle').setup({
-    custom_toggles = {
-        { "foo", "bar", "baz" },
-        -- Add more custom toggle groups here
-    }
-})
 
 ## Installation
 
 Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 
-
+```lua
 {
     'ccaglak/phptools.nvim',
     keys = {
@@ -145,11 +138,16 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
     },
     config = function()
       require('phptools').setup({
+        custom_toggles = {
+        -- { "foo", "bar", "baz" },
+        -- Add more custom toggle groups here
+        }
         ui = false, -- Set to true if not using a UI enhancement plugin
       })
       vim.keymap.set('v','<leader>lr',':PhpRefactor<cr>')
     end
 }
+```
 
 
 ## Requires
