@@ -2,7 +2,7 @@
 
 Elevate your PHP development in Neovim with PhpTools - bringing you one step closer to PHPStorm-like functionality.
 
-![PhpTools Demo](https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e-38bc39252107)
+https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e-38bc39252107
 
 ## Features
 
