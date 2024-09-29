@@ -13,6 +13,7 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
 - Create getters and setters
 - Refactor inline code to functions/methods
 - Create PHP entities (Class, Interface, Enum, Trait) with namespaces
+- Toggles common words <C-a> / <C-x> or fallbacks
 
 ## Detailed Usage
 
