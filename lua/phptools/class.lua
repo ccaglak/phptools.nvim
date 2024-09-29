@@ -50,7 +50,6 @@ function Class:run(method)
   M.class_name = tree.children(M.parent.node, "name")
 
   if M.parent.type == "class_constant_access_expression" then
-    ---@diagnostic disable-next-line: missing-parameter
     local enum_node = M.parent.node:child()
     if enum_node == nil then
       return

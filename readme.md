@@ -11,9 +11,9 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
 - Run Composer scripts
 - Generate namespaces for files
 - Create getters and setters
-- Refactor inline code to functions/methods
 - Create PHP entities (Class, Interface, Enum, Trait) with namespaces
 - Toggles common words <C-a> / <C-x> or fallbacks
+- Refactor with common structures and control flow statements
 
 ## Detailed Usage
 
@@ -114,9 +114,39 @@ PhpTools.nvim includes a powerful toggle feature that enhances your PHP developm
 
 - If the word or operator under the cursor isn't part of a toggle group, it will increment or decrement numbers as usual.
 
-#### Configuration:
+### PhpRefactor
 
-You can add custom toggle groups by passing a configuration table to the setup function:
+Command: `:PhpRefactor`
+
+Quickly surround your PHP code with common structures and control flow statements.
+
+### Usage:
+
+1. Select the text you want to surround in visual/visualline mode
+2. Execute the `:PhpRefactor` command
+3. Choose from the available options:
+
+   - `if`: Wraps the selection in an if statement
+   - `for`: Creates a for loop around the selection
+   - `foreach`: Surrounds the selection with a foreach loop
+   - `while`: Wraps the selection in a while loop
+   - `do-while`: Puts the selection inside a do-while loop
+   - `try-catch`: Encloses the selection in a try-catch block
+   - `function`: Creates a function around the selection
+   - `method`: Wraps the selection in a method
+
+#### Example:
+
+```php
+// Before (with 'echo "Hello, World!";' selected)
+echo "Hello, World!";
+
+// After choosing 'if' from PhpSurround
+if (condition) {
+    echo "Hello, World!";
+}
+
+
 
 
 ## Installation
@@ -145,7 +175,9 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
         }
         ui = false, -- Set to true if not using a UI enhancement plugin
       })
-      vim.keymap.set('v','<leader>lr',':PhpRefactor<cr>')
+      vim.keymap.set('v', '<leader>lr', function()
+            require("phptools.refactor").refactor()
+        end, { desc = 'PhpRefactor' })
     end
 }
 ```

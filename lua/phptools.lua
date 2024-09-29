@@ -43,7 +43,7 @@ M.scripts = function()
 end
 
 M.refactor = function()
-  require("phptools.refactor"):run()
+  require("phptools.refactor").refactor()
 end
 
 M.create = function()
