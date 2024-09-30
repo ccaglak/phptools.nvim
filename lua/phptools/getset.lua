@@ -1,8 +1,22 @@
 local tree = require("phptools.treesitter")
+
 local Etter = {}
+
+-- Inline logging function
+local function log(level, message)
+  local levels = { DEBUG = 1, INFO = 2, WARN = 3, ERROR = 4 }
+  local current_level = levels.INFO -- Set this to the desired log level
+  if levels[level] >= current_level then
+    print(string.format("[%s] %s", level, message))
+  end
+end
+
 function Etter:new()
-  local t = setmetatable({}, { __index = Etter })
-  return t
+  local instance = setmetatable({}, { __index = Etter })
+  instance.config = {
+    indentation = 4, -- Default indentation, can be customized
+  }
+  return instance
 end
 
 local function flatten_symbols(symbols, result)
@@ -15,8 +29,7 @@ local function flatten_symbols(symbols, result)
   end
   return result
 end
---
---
+
 function Etter:run()
   local M = Etter:new()
   M:get_position()
@@ -29,79 +42,73 @@ function Etter:run()
       return
     end
 
-    -- Todo find something better
-    local vari = {}
-    if choice == "Get" then
-      vari = {
-        Get = "get" .. string.ucfirst(string.dltfirst(M.variable.text)),
-      }
-    end
-    if choice == "Set" then
-      vari = {
-        Set = "set" .. string.ucfirst(string.dltfirst(M.variable.text)),
-      }
-    end
+    local methods_to_generate = M:get_methods_to_generate(choice)
+    local existing_methods = M:get_existing_methods()
 
-    if choice == "Get/Set" then
-      vari = {
-        Get = "get" .. string.ucfirst(string.dltfirst(M.variable.text)),
-        Set = "set" .. string.ucfirst(string.dltfirst(M.variable.text)),
-      }
-    end
-
-    local params = vim.lsp.util.make_position_params()
-    local results_lsp = vim.lsp.buf_request_sync(0, "textDocument/documentSymbol", params, 5000)
-
-    if not results_lsp or vim.tbl_isempty(results_lsp) then
-      print("No results")
-      return
-    end
-
-    local vbool = false
-    for gn, gs in pairs(vari) do
-      for _, response in ipairs(results_lsp) do
-        if response.result then
-          for _, result in ipairs(flatten_symbols(response.result)) do
-            if result.name == gs then
-              vbool = true
-            end
-          end
-        end
-      end
-
-      if vbool == false then
-        local tmpl = M:template_builder(string.ucfirst(gn))
+    for method_type, method_name in pairs(methods_to_generate) do
+      if not existing_methods[method_name] then
+        local tmpl = M:template_builder(method_type)
         M:add_to_buffer(tmpl)
       end
     end
   end)
 end
 
---
---
---
-function Etter:template_builder(choice)
+function Etter:get_methods_to_generate(choice)
+  local base_name = string.ucfirst(string.dltfirst(self.variable.text))
+  local methods = {}
+
+  if choice == "Get" or choice == "Get/Set" then
+    methods.Get = "get" .. base_name
+  end
+  if choice == "Set" or choice == "Get/Set" then
+    methods.Set = "set" .. base_name
+  end
+
+  return methods
+end
+
+function Etter:get_existing_methods()
+  local params = vim.lsp.util.make_position_params()
+  local results_lsp = vim.lsp.buf_request_sync(0, "textDocument/documentSymbol", params, 5000)
+  local existing_methods = {}
+
+  if results_lsp and not vim.tbl_isempty(results_lsp) then
+    for _, response in ipairs(results_lsp) do
+      if response.result then
+        for _, symbol in ipairs(flatten_symbols(response.result)) do
+          if symbol.kind == vim.lsp.protocol.SymbolKind.Method then
+            existing_methods[symbol.name] = true
+          end
+        end
+      end
+    end
+  end
+
+  return existing_methods
+end
+
+function Etter:template_builder(method_type)
   local var = self.variable.text
   local type = self.union.text
   local name = string.ucfirst(self.variable.text:sub(2))
   local vname = self.variable.text:sub(2)
+  local indent = string.rep(" ", self.config.indentation)
   local tmpl = {}
-  if choice == "Set" or choice == "Get/Set" then
-    table.insert(tmpl, "    public function set" .. name .. "(" .. type .. " " .. var .. "):void{")
-    table.insert(tmpl, "       $this->" .. vname .. " = " .. var .. ";")
-    table.insert(tmpl, "    }")
+
+  if method_type == "Set" then
+    table.insert(tmpl, indent .. "public function set" .. name .. "(" .. type .. " " .. var .. "):void {")
+    table.insert(tmpl, indent .. indent .. "$this->" .. vname .. " = " .. var .. ";")
+    table.insert(tmpl, indent .. "}")
+  elseif method_type == "Get" then
+    table.insert(tmpl, indent .. "public function get" .. name .. "():" .. type .. " {")
+    table.insert(tmpl, indent .. indent .. "return $this->" .. vname .. ";")
+    table.insert(tmpl, indent .. "}")
   end
-  if choice == "Get" or choice == "Get/Set" then
-    table.insert(tmpl, "    public function get" .. name .. "():" .. type .. "{")
-    table.insert(tmpl, "       return $this->" .. vname .. ";")
-    table.insert(tmpl, "    }")
-  end
+
   return tmpl
 end
 
---
---
---
 function Etter:add_to_buffer(lines)
   local lastline = vim.api.nvim_buf_line_count(0)
   vim.api.nvim_buf_set_lines(0, lastline - 1, lastline - 1, true, lines)
@@ -110,51 +117,60 @@ function Etter:add_to_buffer(lines)
   end)
 end
 
---
---
---
 function Etter:get_position()
-  self.parent = tree.parent("property_declaration")
-  if self.parent == nil then
-    self.parent = tree.parent("property_promotion_parameter")
-    if self.parent == nil then
-      return
+  local function find_node(node_type)
+    local node = tree.parent(node_type)
+    if node then
+      log("DEBUG", "Found " .. node_type)
+      return node
     end
+    return nil
   end
 
-  -- self.visibility = tree.child_type(self.parent.node, "visibility_modifier")
-  -- if self.visibility.node == nil then
-  --   return
-  -- end
+  self.parent = find_node("property_declaration") or find_node("property_promotion_parameter")
+  if not self.parent then
+    log("ERROR", "Could not find parent node")
+    return false
+  end
 
-  self.union = tree.children(self.parent.node, "optional_type")
-  if self.union == nil then
-    self.union = tree.children(self.parent.node, "primitive_type")
-    if self.union == nil then
-      self.union = tree.children(self.parent.node, "union_type")
-      if self.union == nil then
-        self.union = tree.children(self.parent.node, "named_type")
-        if self.union == nil then
-          return
-        end
+  local function find_type()
+    local type_nodes = {
+      "optional_type",
+      "primitive_type",
+      "union_type",
+      "named_type",
+    }
+    for _, type_node in ipairs(type_nodes) do
+      local node = tree.children(self.parent.node, type_node)
+      if node then
+        return node
       end
     end
+    return nil
   end
+
+  self.union = find_type()
+  if not self.union then
+    return false
+  end
+
   if self.parent.type ~= "property_promotion_parameter" then
     self.property = tree.children(self.parent.node, "property_element")
-    if self.property.node == nil then
-      return
+    if not self.property then
+      log("ERROR", "Could not find property_element")
+      return false
     end
     self.variable = tree.children(self.property.node, "variable_name")
-    if self.variable.node == nil then
-      return
-    end
-    return
+  else
+    self.variable = tree.children(self.parent.node, "variable_name")
   end
-  self.variable = tree.children(self.parent.node, "variable_name")
-  if self.variable.node == nil then
-    return
+
+  if not self.variable then
+    log("ERROR", "Could not find variable_name")
+    return false
   end
+
+  return true
 end
 
 return Etter

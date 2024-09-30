@@ -50,4 +50,8 @@ M.create = function()
   require("phptools.create"):run()
 end
 
+M.composer = function()
+  require("phptools.compose"):run()
+end
+
 return M

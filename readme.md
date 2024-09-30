@@ -19,7 +19,7 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
 
 ### PhpMethod
 
-Command: `:PhpMethod`
+Command: `:Php Method`
 
 Generates undefined methods. Works with:
 - Object methods: `$router->resolve();`
@@ -31,7 +31,7 @@ If the class doesn't exist, it will also generate the class.
 
 ### PhpClass
 
-Command: `:PhpClass`
+Command: `:Php Class`
 
 Creates undefined classes, traits, interfaces, or enums. Supports:
 - Class instantiation: `new Router();`
@@ -43,35 +43,26 @@ Generates the entity with proper namespace and creates a use statement for the c
 
 ### PhpScripts
 
-Command: `:PhpScripts`
+Command: `:Php Scripts`
 
 Runs Composer scripts defined in your `composer.json` file.
 
 ### PhpNamespace
 
-Command: `:PhpNamespace`
+Command: `:Php Namespace`
 
 Generates the appropriate namespace for the current file based on its location in the project structure.
 
 ### PhpGetSet
 
-Command: `:PhpGetSet`
+Command: `:Php GetSet`
 
 When the cursor is on a property declaration (e.g., `public array $routes = [];`), it generates getter, setter, or both for that property.
 
-### PhpRefactor
-
-Command: `:PhpRefactor`
-
-Works on visually selected text. Options include:
-- Inline selected text to a function
-- Inline selected text to a method
-
-More refactoring options will be added in future updates.
 
 ### PhpCreate
 
-Command: `:PhpCreate`
+Command: `:Php Create`
 
 Allows you to create a new PHP entity (Class, Interface, Enum, or Trait) in the current file, complete with the correct namespace.
 
@@ -116,14 +107,14 @@ PhpTools.nvim includes a powerful toggle feature that enhances your PHP developm
 
 ### PhpRefactor
 
-Command: `:PhpRefactor`
+Command: `:Php Refactor`
 
 Quickly surround your PHP code with common structures and control flow statements.
 
 ### Usage:
 
 1. Select the text you want to surround in visual/visualline mode
-2. Execute the `:PhpRefactor` command
+2. Execute the `:Php Refactor` command
 3. Choose from the available options:
 
    - `if`: Wraps the selection in an if statement
@@ -141,7 +132,7 @@ Quickly surround your PHP code with common structures and control flow statement
 // Before (with 'echo "Hello, World!";' selected)
 echo "Hello, World!";
 
-// After choosing 'if' from PhpSurround
+// After choosing 'if' from Php Refactor
 if (condition) {
     echo "Hello, World!";
 }
@@ -157,12 +148,12 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 {
     'ccaglak/phptools.nvim',
     keys = {
-        { "<leader>lm", "<cmd>PhpMethod<cr>"},
-        { "<leader>lc", "<cmd>PhpClass<cr>"},
-        { "<leader>ls", "<cmd>PhpScripts<cr>"},
-        { "<leader>ln", "<cmd>PhpNamespace<cr>"},
-        { "<leader>lg", "<cmd>PhpGetSet<cr>"},
-        { "<leader>lf", "<cmd>PhpCreate<cr>"},
+        { "<leader>lm", "<cmd>Php Method<cr>"},
+        { "<leader>lc", "<cmd>Php Class<cr>"},
+        { "<leader>ls", "<cmd>Php Scripts<cr>"},
+        { "<leader>ln", "<cmd>Php Namespace<cr>"},
+        { "<leader>lg", "<cmd>Php GetSet<cr>"},
+        { "<leader>lf", "<cmd>Php Create<cr>"},
     },
     dependencies = {
         "nvim-lua/plenary.nvim"
