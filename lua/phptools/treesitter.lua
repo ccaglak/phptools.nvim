@@ -11,7 +11,7 @@ M.find_parent = function(node, type)
   local parent = node:parent()
   while parent do
     if parent:type() == type then
-      return { node = parent, text = M.get_text(parent), range = { parent:range() } }
+      return { node = parent, text = M.get_text(parent), range = { parent:range() }, type = node:type() }
     end
     parent = parent:parent()
   end
@@ -25,7 +25,7 @@ end
 
 M.cnode = function()
   local node = M.cursor()
-  return { node = node, text = M.get_text(node), type = node:type() }
+  return { node = node, text = M.get_text(node), range = { node:range() }, type = node:type() }
 end
 
 M.parent = function(type)
@@ -34,7 +34,7 @@ M.parent = function(type)
     node = node:parent()
   end
   if node ~= nil then
-    return { node = node, text = M.get_text(node), type = node:type() }
+    return { node = node, text = M.get_text(node), range = { node:range() }, type = node:type() }
   end
 end
 
@@ -44,7 +44,7 @@ M.child = function(cnode, cname)
   for node, name in cnode:iter_children() do
     if node:named() then
       if name == cname then
-        return { node = node, text = M.get_text(node), range = { node:range() } }
+        return { node = node, text = M.get_text(node), range = { node:range() }, type = node:type() }
       end
     end
   end
@@ -55,7 +55,7 @@ end
 M.child_type = function(node, type)
   while node do
     if node:type() == type then
-      return { node = node, text = M.get_text(node), range = { node:range() } }
+      return { node = node, text = M.get_text(node), range = { node:range() }, type = node:type() }
     end
     node = node:child()
   end
@@ -66,7 +66,7 @@ M.children = function(cnode, type)
   cnode = cnode or M.cursor()
   for node, _ in cnode:iter_children() do
     if node:type() == type then
-      return { node = node, text = M.get_text(node), range = { node:range() } }
+      return { node = node, text = M.get_text(node), range = { node:range() }, type = node:type() }
     end
   end
 end
