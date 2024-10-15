@@ -62,10 +62,5 @@ M.namespace = function()
   require("phptools.composer"):resolve()
 end
 
-M.cost = function()
-  require("phptools.cost").paint()
-end
-
-
 
 return M
