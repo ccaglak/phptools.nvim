@@ -1,13 +1,13 @@
 ## PhpTools.nvim
 
-Elevate your PHP development in Neovim with PhpTools - bringing you one step closer to PHPStorm-like functionality.
+Elevate your PHP development in Neovim with PhpTools - bringing you one step closer to PHPStorm-like functionality ;).
 
 https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e-38bc39252107
 
 ## Features
 
-- Generate undefined methods and classes
-- Create classes, traits, interfaces, and enums with proper namespacing
+- Generate undefined methods
+- Create classes, traits, interfaces, and enums with proper namespacing, including `use` statements
 - Run Composer scripts
 - Generate namespaces for files
 - Create getters and setters
@@ -148,15 +148,17 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 {
     'ccaglak/phptools.nvim',
     keys = {
-        { "<leader>lm", "<cmd>Php Method<cr>"},
-        { "<leader>lc", "<cmd>Php Class<cr>"},
-        { "<leader>ls", "<cmd>Php Scripts<cr>"},
-        { "<leader>ln", "<cmd>Php Namespace<cr>"},
-        { "<leader>lg", "<cmd>Php GetSet<cr>"},
-        { "<leader>lf", "<cmd>Php Create<cr>"},
+        { "<leader>lm", "<cmd>PhpTools Method<cr>"},
+        { "<leader>lc", "<cmd>PhpTools Class<cr>"},
+        { "<leader>ls", "<cmd>PhpTools Scripts<cr>"},
+        { "<leader>ln", "<cmd>PhpTools Namespace<cr>"},
+        { "<leader>lg", "<cmd>PhpTools GetSet<cr>"},
+        { "<leader>lf", "<cmd>PhpTools Create<cr>"},
+        { "<leader>lt", "<cmd>PhpTools Cost<cr>"}, -- looking for a way to get the download size for now just latest version number
     },
     dependencies = {
-        "nvim-lua/plenary.nvim"
+        "ccaglak/namespace.nvim", -- optional - php namespace resolver
+        "ccaglak/larago.nvim", -- optional -- laravel goto blade/components
     },
     config = function()
       require('phptools').setup({

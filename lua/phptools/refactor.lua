@@ -11,31 +11,18 @@ local templates = {
   ["method"] = "public function %s(%s)\n{\n%s\n}",
 }
 
-local function get_visual_selection()
-  local start_pos = vim.fn.getpos("'<")
-  local end_pos = vim.fn.getpos("'>")
-  local start_row, start_col = start_pos[2], start_pos[3]
-  local end_row, end_col = end_pos[2], end_pos[3]
-
-  if start_row > end_row or (start_row == end_row and start_col > end_col) then
-    start_row, end_row = end_row, start_row
-    start_col, end_col = end_col, start_col
-  end
-
-  local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, false)
-  if #lines == 0 then
+local get_visual_selection = function()
+  vim.cmd('noau normal! "vy"')
+  local text = vim.fn.getreg("v")
+  vim.fn.setreg("v", {})
+  text = string.gsub(tostring(text), "\n", "")
+  if #text > 0 then
+    return text
+  else
     return ""
   end
-
-  lines[1] = string.sub(lines[1], start_col)
-  if #lines > 1 then
-    lines[#lines] = string.sub(lines[#lines], 1, end_col - 1)
-  else
-    lines[1] = string.sub(lines[1], 1, end_col - start_col + 1)
-  end
-
-  return table.concat(lines, "\n")
 end
+
 
 local function get_indentation(line)
   local space_count = line:match("^( *)")
@@ -93,13 +80,12 @@ end
 
 function M.refactor()
   local structures = vim.tbl_keys(templates)
-
+  local code = get_visual_selection()
   vim.schedule(function()
     vim.ui.select(structures, {
       prompt = "Select structure to surround with:",
     }, function(choice)
       if choice then
-        local code = get_visual_selection()
         if code ~= "" then
           local surrounded_code = surround_code(choice, code)
 
@@ -119,7 +105,6 @@ function M.refactor()
               vim.cmd("silent! write! | edit")
             end)
           else
-            -- Existing logic for other structures
             local end_line = vim.fn.line("'>") - 1
             local end_col = math.min(vim.fn.col("'>"), #vim.api.nvim_buf_get_lines(0, end_line, end_line + 1, true)[1])
             vim.api.nvim_buf_set_text(

@@ -6,15 +6,9 @@ function string.ends(String, End)
   return End == "" or string.sub(String, -string.len(End)) == End
 end
 
----- got to find home for these funcs
-local get_sep = function()
-  local win = vim.uv.os_uname().sysname == "Darwin" or "Linux"
-  return win and "/" or "\\"
-end
+_G.sep = vim.uv.os_uname().sysname == "Windows_NT" and "\\" or "/"
 
-_G.sep = get_sep()
-
-_G.root = require("phptools.root").root() .. sep
+_G.root = vim.fs.root(0, { "composer.json", ".git" }) or vim.uv.cwd()
 
 function string.pascalcase(str, deli)
   deli = deli or "\\"
@@ -56,7 +50,7 @@ function io.pathinfo(path)
   local extpos = pos + 1
   while pos > 0 do
     local b = string.byte(path, pos)
-    if b == 46 then -- 46 = char "."
+    if b == 46 then     -- 46 = char "."
       extpos = pos
     elseif b == 47 then -- 47 = char "/"
       break

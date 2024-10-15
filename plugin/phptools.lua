@@ -8,6 +8,8 @@ local command_map = {
   Scripts = "Scripts",
   Refactor = "Refactor",
   Create = "Create",
+  Cost = "Cost",
+  Composer = "Composer"
 }
 
 local function execute_command(command)
@@ -35,7 +37,7 @@ local function php_command(opts)
   end
 end
 
-vim.api.nvim_create_user_command("Php", php_command, {
+vim.api.nvim_create_user_command("PhpTools", php_command, {
   nargs = "+",
   complete = function(_, _, _)
     return vim.tbl_keys(command_map)
@@ -43,18 +45,8 @@ vim.api.nvim_create_user_command("Php", php_command, {
 })
 
 if not vim.uv then
-  vim.uv = vim.uv
+  vim.uv = vim.loop
 end
 if not vim.lsp.get_clients then -- to be removed v12
   vim.lsp.get_clients = vim.lsp.get_active_clients
 end
-----
---- to be removed after sometime
----
-vim.api.nvim_create_user_command("PhpMethod", require("phptools").method, {})
-vim.api.nvim_create_user_command("PhpClass", require("phptools").class, {})
-vim.api.nvim_create_user_command("PhpNamespace", require("phptools").namespace, {})
-vim.api.nvim_create_user_command("PhpGetSet", require("phptools").getset, {})
-vim.api.nvim_create_user_command("PhpScripts", require("phptools").scripts, {})
-vim.api.nvim_create_user_command("PhpRefactor", require("phptools").refactor, {})
-vim.api.nvim_create_user_command("PhpCreate", require("phptools").create, {})

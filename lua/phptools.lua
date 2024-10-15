@@ -4,7 +4,8 @@ require("phptools.funcs")
 ---@class Config
 ---@field opt string
 local config = {
-  ui = false,
+  ui = true,
+  create = false,
   toggle_options = {},
 }
 
@@ -16,6 +17,17 @@ M.config = config
 ---@param args Config?
 M.setup = function(args)
   M.config = vim.tbl_deep_extend("force", M.config, args or {})
+  if M.config.create == true then
+    vim.api.nvim_create_autocmd("BufNewFile", {
+      pattern = "*.php",
+      callback = function()
+        if vim.fn.expand("%:e") == "php" then
+          require("phptools.create"):run()
+        end
+      end,
+      group = vim.api.nvim_create_augroup("PhpToolsCreateFile", { clear = true }),
+    })
+  end
   if M.config.ui == true then
     require("phptools.ui")
   end
@@ -28,10 +40,6 @@ end
 
 M.class = function()
   require("phptools.class"):run()
-end
-
-M.namespace = function()
-  require("phptools.namespace"):run()
 end
 
 M.getset = function()
@@ -50,8 +58,14 @@ M.create = function()
   require("phptools.create"):run()
 end
 
-M.composer = function()
-  require("phptools.compose"):run()
+M.namespace = function()
+  require("phptools.composer"):resolve()
 end
+
+M.cost = function()
+  require("phptools.cost").paint()
+end
+
+
 
 return M

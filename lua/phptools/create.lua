@@ -1,4 +1,3 @@
-local namespace = require("phptools.namespace")
 local composer = require("phptools.composer")
 
 local Create = {}
@@ -10,16 +9,8 @@ end
 function Create:run()
   local M = Create:new()
   local filename = vim.fn.fnamemodify(vim.fn.expand("%:t"), ":r")
-  local prefix, src = composer.composer()
-  local dir = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p:h")
 
-  dir = dir:gsub("-", "!") -- replaced special char (-) with (!)
-  dir = dir:gsub(root:gsub("-", "!"), "")
-  if dir == sep or dir == "." then
-    dir = "src"
-  end
-
-  local file_ns = namespace:gen(dir, prefix, src)
+  local file_ns = composer.resolve_namespace()
 
   vim.ui.select({ "class", "trait", "interface", "enum", "abstract" }, {
     prompt = "Create",
