@@ -63,6 +63,16 @@ function Method:add_to_buffer(lines, bufnr)
   fn.cursor({ lastline + 2, 9 })
 end
 
+local function await(cond, after)
+  if not cond() then
+    vim.defer_fn(function()
+      await(cond, after)
+    end, 250)
+    return
+  end
+  after()
+end
+
 function Method:run()
   local params = lsp.util.make_position_params()
   local current_file = params.textDocument.uri:gsub("file://", "")
@@ -82,7 +92,18 @@ function Method:run()
     if uri ~= nil then
       file_path = uri:gsub("file://", "")
     else
+      _G.done = false
+
       require("phptools.class"):run()
+      await(function()
+        if _G.done then
+          return true
+        end
+      end, function()
+        local bufnr = self:get_buffer(_G.filepath)
+        self:add_to_buffer(self:generate_method_lines(method.text), bufnr)
+      end)
+      return
     end
   end
 

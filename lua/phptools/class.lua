@@ -85,6 +85,8 @@ function Class:create_new_class()
     local bufnr = self:get_bufnr(file_path)
     self:add_template_to_buffer(self:template_builder(), bufnr)
     self:finalize_buffer(bufnr)
+    _G.done = true
+    _G.filepath = file_path
   end)
 end
 
