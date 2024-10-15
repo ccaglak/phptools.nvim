@@ -154,7 +154,6 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
         { "<leader>ln", "<cmd>PhpTools Namespace<cr>"},
         { "<leader>lg", "<cmd>PhpTools GetSet<cr>"},
         { "<leader>lf", "<cmd>PhpTools Create<cr>"},
-        { "<leader>lt", "<cmd>PhpTools Cost<cr>"}, -- looking for a way to get the download size for now just latest version number
     },
     dependencies = {
         "ccaglak/namespace.nvim", -- optional - php namespace resolver

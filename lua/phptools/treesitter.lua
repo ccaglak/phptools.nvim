@@ -7,9 +7,25 @@ M.cursor = function()
   return node
 end
 
+M.find_parent = function(node, type)
+  local parent = node:parent()
+  while parent do
+    if parent:type() == type then
+      return { node = parent, text = M.get_text(parent), range = { parent:range() } }
+    end
+    parent = parent:parent()
+  end
+  return nil
+end
+
 M.get_text = function(node)
   node = node or M.cursor()
   return ts.get_node_text(node, 0, {}) -- empty brackets are important
+end
+
+M.cnode = function()
+  local node = M.cursor()
+  return { node = node, text = M.get_text(node), type = node:type() }
 end
 
 M.parent = function(type)

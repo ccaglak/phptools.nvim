@@ -3,7 +3,48 @@ local lsp = vim.lsp
 local api = vim.api
 local fn = vim.fn
 
-local function create_position_params(node)
+local Method = {}
+Method.__index = Method
+
+function Method.new()
+  local self = setmetatable({}, Method)
+  return self
+end
+
+function Method:run()
+  local params = lsp.util.make_position_params()
+  local current_file = params.textDocument.uri:gsub("file://", "")
+  local parent, method, variable_or_scope = self:get_position()
+  if not parent or not method or not variable_or_scope then return end
+
+  local method_position = self:create_position_params(method)
+
+  if self:find_and_jump_to_definition(method_position) then return end
+
+  local file_path
+  if variable_or_scope.text == "$this" then
+    file_path = current_file
+  else
+    local variable_position = self:create_position_params(variable_or_scope)
+    local location = self:find_and_jump_to_definition(variable_position)
+    if location == nil then return end
+    local uri = location.uri or location.targetUri
+    if uri:gsub("file://", "") ~= current_file then
+      if uri ~= current_file then
+        file_path = uri:gsub("file://", "")
+      end
+    else
+      require("phptools.class"):run()
+    end
+  end
+
+  if file_path then
+    local bufnr = self:get_buffer(file_path)
+    self:add_to_buffer(self:generate_method_lines(method.text), bufnr)
+  end
+end
+
+function Method:create_position_params(node)
   return {
     textDocument = lsp.util.make_position_params().textDocument,
     position = {
@@ -13,7 +54,7 @@ local function create_position_params(node)
   }
 end
 
-local function find_and_jump_to_definition(params, methods)
+function Method:find_and_jump_to_definition(params, methods)
   methods = methods or { "textDocument/definition", "textDocument/typeDefinition" }
   for _, method in ipairs(methods) do
     local results = lsp.buf_request_sync(0, method, params, 1000)
@@ -29,7 +70,7 @@ local function find_and_jump_to_definition(params, methods)
   return nil
 end
 
-local function generate_method_lines(method_name)
+function Method:generate_method_lines(method_name)
   return {
     string.format("    public function %s()", method_name),
     "    {",
@@ -38,11 +79,11 @@ local function generate_method_lines(method_name)
   }
 end
 
-local function get_buffer(filename)
+function Method:get_buffer(filename)
   return fn.bufexists(filename) ~= 0 and fn.bufnr(filename) or fn.bufadd(filename)
 end
 
-local function add_to_buffer(lines, bufnr)
+function Method:add_to_buffer(lines, bufnr)
   bufnr = bufnr or api.nvim_get_current_buf()
   if not api.nvim_buf_is_valid(bufnr) then return end
 
@@ -55,54 +96,4 @@ local function add_to_buffer(lines, bufnr)
   fn.cursor({ lastline + 2, 9 })
 end
 
-local function get_position()
-  local parent = tree.parent("member_call_expression") or tree.parent("scoped_call_expression")
-  if not parent then return end
-
-  local parenthe = tree.child_type(parent.node, "parenthesized_expression")
-  local method = tree.child(parent.node, "name")
-  local variable, scope
-
-  if parenthe then
-    return parent, parenthe, method
-  elseif parent.type == "scoped_call_expression" then
-    scope = tree.child(parent.node, "scope")
-    return parent, method, scope
-  else
-    variable = tree.child_type(parent.node, "variable_name")
-    return parent, method, variable
-  end
-end
-
-local function run_method()
-  local params = lsp.util.make_position_params()
-  local current_file = params.textDocument.uri:gsub("file://", "")
-  local parent, method, variable_or_scope = get_position()
-  if not parent or not method then return end
-
-  local method_position = create_position_params(method)
-
-  if find_and_jump_to_definition(method_position) then return end
-
-  local file_path
-  if variable_or_scope.text == "$this" then
-    file_path = current_file
-  else
-    local variable_position = create_position_params(variable_or_scope)
-    local location = find_and_jump_to_definition(variable_position)
-    if location then
-      file_path = location.uri:gsub("file://", "")
-    else
-      -- Handle missing class creation here if needed
-    end
-  end
-
-  if file_path then
-    local bufnr = get_buffer(file_path)
-    add_to_buffer(generate_method_lines(method.text), bufnr)
-  end
-end
-
-return {
-  run = run_method
-}
+return Method
