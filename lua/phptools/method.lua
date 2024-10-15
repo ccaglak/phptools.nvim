@@ -11,6 +11,42 @@ function Method.new()
   return self
 end
 
+<<<<<<< HEAD
+=======
+function Method:run()
+  local params = lsp.util.make_position_params()
+  local current_file = params.textDocument.uri:gsub("file://", "")
+  local parent, method, variable_or_scope = self:get_position()
+  if not parent or not method or not variable_or_scope then return end
+
+  local method_position = self:create_position_params(method)
+
+  if self:find_and_jump_to_definition(method_position) then return end
+
+  local file_path
+  if variable_or_scope.text == "$this" then
+    file_path = current_file
+  else
+    local variable_position = self:create_position_params(variable_or_scope)
+    local location = self:find_and_jump_to_definition(variable_position)
+    if location == nil then return end
+    local uri = location.uri or location.targetUri
+    if uri:gsub("file://", "") ~= current_file then
+      if uri ~= current_file then
+        file_path = uri:gsub("file://", "")
+      end
+    else
+      require("phptools.class"):run()
+    end
+  end
+
+  if file_path then
+    local bufnr = self:get_buffer(file_path)
+    self:add_to_buffer(self:generate_method_lines(method.text), bufnr)
+  end
+end
+
+>>>>>>> a09dcdfe0cc6c8c8a1e6d0852d42315ef586c1fa
 function Method:create_position_params(node)
   return {
     textDocument = lsp.util.make_position_params().textDocument,
