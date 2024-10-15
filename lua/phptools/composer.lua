@@ -26,8 +26,8 @@ function N.resolve_namespace(current_dir)
   end
 
   local prefix_and_src = N.get_prefix_and_src()
+  current_dir = vim.fn.fnamemodify(current_dir, ":h")
   current_dir = current_dir:gsub(root, ""):gsub(sep, "\\")
-  current_dir = current_dir:gsub("\\\\", "\\"):gsub("%.php$", "")
 
   for _, entry in ipairs(prefix_and_src or {}) do
     if current_dir:find(entry.src:sub(1, -1)) ~= nil then
@@ -64,7 +64,7 @@ function N.generate_use_statement(filepath)
     if relative_path:find(entry.src:sub(1, -1)) ~= nil then
       local namespace = relative_path:gsub(entry.src, entry.prefix)
       namespace = namespace:gsub("\\\\", "\\"):gsub("%.php$", "")
-      return "use " .. namespace:sub(2) .. ";"
+      return "use " .. namespace:gsub(sep, "") .. ";"
     end
   end
 

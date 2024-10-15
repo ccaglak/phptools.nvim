@@ -4,10 +4,12 @@ local composer = require("phptools.composer")
 local Class = {}
 
 Class.templates = {
-  interface = "interface",
-  class = "class",
-  trait = "trait",
-  enum = "enum",
+  class_interface_clause = "interface",
+  base_clause = "class",
+  object_creation_expression = "class",
+  scoped_call_expression = "class",
+  use_declaration = "trait",
+  class_constant_access_expression = "enum",
 }
 
 function Class:new()

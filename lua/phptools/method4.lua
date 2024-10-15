@@ -72,8 +72,56 @@ function Method:run()
   local method_position = self:create_position_params(method)
 
   if self:find_and_jump_to_definition(method_position) then return end
+
+
+  -- local node_type = parent.node:type()
+  -- if node_type == "scoped_call_expression" or node_type == "class_constant_access_expression" then
+  --   local variable_position = self:create_position_params(variable_or_scope)
+  --   local location = self:find_and_jump_to_definition(variable_position)
+  --   if location == nil then return end
+  --   location = location.uri or location.targetUri
+  --   if location:gsub("file://", "") ~= current_file then
+  --     file_path = location:gsub("file://", "")
+  --   end
+  -- elseif node_type == "member_call_expression" then
+  --   local object = tree.child(node, "object")
+  --   if object then
+  --     if object.node:type() == "parenthesized_expression" then
+
+  --     end
+
+  --     if object.node:type() == "variable_name" and tree.get_text(object.node) == "$this" then
+  --         file_path = current_file
+  --     end
+  --     if object.node:type() == "variable_name" then
+  --     local class
+  --     local assignment = tree.find_parent(tree.cursor(), "assignment_expression")
+  --     if assignment then
+  --       local right_side = tree.children(assignment.node, 'object_creation_expression')
+  --       class = tree.children(right_side.node, "name")
+  --       vim.fn.cursor({ class.range[1] + 1, class.range[2] + 2 })
+  --       require("phptools.class"):run()
+  --     end
+
+  --     end
+  --   end
+  -- end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   local file_path
-  if variable_or_scope.text == "this" then
+  if variable_or_scope.text == "$this" then
     file_path = current_file
   else
     local variable_position = self:create_position_params(variable_or_scope)
