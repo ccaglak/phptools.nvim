@@ -23,7 +23,6 @@ local get_visual_selection = function()
   end
 end
 
-
 local function get_indentation(line)
   local space_count = line:match("^( *)")
   local tab_count = line:match("^(\t*)")

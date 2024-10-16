@@ -14,9 +14,11 @@ local function match_method(method_name, symbols)
   for _, symbol in ipairs(symbols) do
     if symbol.text:match("^%[Method%]") then
       local symbol_method = symbol.text:match("%[Method%] (.+)")
-      if symbol_method == method_name or
-          (not method_name and symbol_method == "__invoke") or
-          symbol_method:match("^" .. vim.pesc(method_name) .. "%(") then
+      if
+        symbol_method == method_name
+        or (not method_name and symbol_method == "__invoke")
+        or symbol_method:match("^" .. vim.pesc(method_name) .. "%(")
+      then
         return symbol
       end
     end
@@ -54,9 +56,11 @@ function M.go(client, is_new_instance, full_class, method)
     end
 
     for _, location in ipairs(resp.result) do
-      if location.location
-          and location.containerName .. "\\" .. location.name == full_class
-          and vim.lsp.util._get_symbol_kind_name(location.kind) == "Class" then
+      if
+        location.location
+        and location.containerName .. "\\" .. location.name == full_class
+        and vim.lsp.util._get_symbol_kind_name(location.kind) == "Class"
+      then
         symbol_cache[full_class] = location
         return location
       end
@@ -83,20 +87,24 @@ function M.go(client, is_new_instance, full_class, method)
 
     local method_locations = vim.lsp.util.symbols_to_items(method_server_result or {}, 0) or {}
     if vim.tbl_isempty(method_locations) then
-      return handle_error(string.format("Empty response looking for method: %s", method or "__invoke"),
-        is_new_instance and client.id)
+      return handle_error(
+        string.format("Empty response looking for method: %s", method or "__invoke"),
+        is_new_instance and client.id
+      )
     end
 
     local method_location = match_method(method, method_locations)
 
     if not method_location then
-      return handle_error(string.format("Could not find method: %s", method or "__invoke"), is_new_instance and client
-        .id)
+      return handle_error(
+        string.format("Could not find method: %s", method or "__invoke"),
+        is_new_instance and client.id
+      )
     end
 
     vim.schedule(function()
       pcall(vim.api.nvim_win_set_cursor, 0, { method_location.lnum, method_location.col - 1 })
-      vim.cmd "normal zt"
+      vim.cmd("normal zt")
     end)
 
     if is_new_instance then

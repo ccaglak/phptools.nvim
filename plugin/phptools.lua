@@ -9,7 +9,7 @@ local command_map = {
   Refactor = "Refactor",
   Create = "Create",
   Cost = "Cost",
-  Composer = "Composer"
+  Composer = "Composer",
 }
 
 local function execute_command(command)

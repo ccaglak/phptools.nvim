@@ -62,5 +62,4 @@ M.namespace = function()
   require("phptools.composer"):resolve()
 end
 
-
 return M

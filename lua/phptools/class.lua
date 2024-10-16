@@ -15,14 +15,16 @@ Class.templates = {
 function Class:new()
   return setmetatable({
     params = vim.lsp.util.make_position_params(),
-    constructor = false
+    constructor = false,
   }, { __index = self })
 end
 
 function Class:run()
   local instance = self:new()
   instance.parent = instance:get_parent()
-  if not instance.parent then return end
+  if not instance.parent then
+    return
+  end
 
   instance:process_parent()
   instance:get_class_name()
@@ -36,9 +38,12 @@ end
 
 function Class:get_class_name()
   self.class_name = self.parent.type == "class_constant_access_expression"
-      and
-      { node = self.parent.node:child(), text = tree.get_text(self.parent.node:child()), range = { self.parent.node:child():range() } }
-      or tree.children(self.parent.node, "name")
+      and {
+        node = self.parent.node:child(),
+        text = tree.get_text(self.parent.node:child()),
+        range = { self.parent.node:child():range() },
+      }
+    or tree.children(self.parent.node, "name")
 end
 
 function Class:find_or_create_class()
@@ -66,14 +71,18 @@ end
 
 function Class:create_new_class()
   local pre_src = composer.get_prefix_and_src()
-  if not pre_src then return end
+  if not pre_src then
+    return
+  end
 
   vim.ui.input({
     prompt = "Directory for " .. self.class_name.text .. ".php",
     completion = "dir",
     default = pre_src.src,
   }, function(dir)
-    if not dir then return end
+    if not dir then
+      return
+    end
     dir = normalize_path(dir)
     vim.fn.mkdir(dir, "p")
 
@@ -93,14 +102,16 @@ end
 function Class:finalize_buffer(bufnr)
   vim.api.nvim_set_option_value("filetype", "php", { buf = bufnr })
   vim.api.nvim_set_current_buf(bufnr)
-  vim.api.nvim_buf_call(0, function() vim.cmd("silent! wall! | edit") end)
+  vim.api.nvim_buf_call(0, function()
+    vim.cmd("silent! wall! | edit")
+  end)
   vim.fn.cursor({ self.constructor and 11 or 9, 9 })
 end
 
 function Class:class_position()
   return {
     textDocument = self.params.textDocument,
-    position = { character = self.class_name.range[2] + 1, line = self.class_name.range[1] }
+    position = { character = self.class_name.range[2] + 1, line = self.class_name.range[1] },
   }
 end
 
@@ -132,22 +143,28 @@ function Class:get_parent()
     "class_interface_clause",
     "use_declaration",
     "class_constant_access_expression",
-    "scoped_call_expression"
+    "scoped_call_expression",
   }) do
     local parent = tree.parent(type)
-    if parent and parent.type == type then return parent end
+    if parent and parent.type == type then
+      return parent
+    end
   end
 end
 
 function Class:template_builder()
   local template = self.templates[self.parent.type] or "class"
   local tmpl = {
-    "<?php", "", "declare(strict_types=1);", "",
-    self.file_ns, "",
+    "<?php",
+    "",
+    "declare(strict_types=1);",
+    "",
+    self.file_ns,
+    "",
     template .. " " .. self.class_name.text,
     "{",
     self.constructor and "    public function __construct()\n    {\n        //\n    }" or "    //",
-    "}"
+    "}",
   }
   return tmpl
 end

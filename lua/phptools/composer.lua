@@ -142,7 +142,7 @@ function N:scripts()
     prompt = "Run Tasks",
     format_item = function(item)
       return string.format("%s: %s", item.name, item.description)
-    end
+    end,
   }, function(selection)
     if not selection then
       return
@@ -152,20 +152,20 @@ function N:scripts()
     vim.notify("Executing: " .. command, vim.log.levels.INFO)
 
     local output_buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_option(output_buf, 'buftype', 'nofile')
-    vim.api.nvim_buf_set_option(output_buf, 'swapfile', false)
-    vim.api.nvim_buf_set_option(output_buf, 'bufhidden', 'wipe')
-    vim.api.nvim_buf_set_keymap(output_buf, 'n', 'q', '<cmd>close<CR>', { noremap = true, silent = true })
+    vim.api.nvim_buf_set_option(output_buf, "buftype", "nofile")
+    vim.api.nvim_buf_set_option(output_buf, "swapfile", false)
+    vim.api.nvim_buf_set_option(output_buf, "bufhidden", "wipe")
+    vim.api.nvim_buf_set_keymap(output_buf, "n", "q", "<cmd>close<CR>", { noremap = true, silent = true })
     local width = math.floor(vim.o.columns * 0.6)
     local height = math.floor(vim.o.lines * 0.8)
     local win = vim.api.nvim_open_win(output_buf, true, {
-      relative = 'editor',
+      relative = "editor",
       width = width,
       height = height,
       col = math.floor((vim.o.columns - width) / 2),
       row = math.floor((vim.o.lines - height) / 2),
-      style = 'minimal',
-      border = 'rounded'
+      style = "minimal",
+      border = "rounded",
     })
 
     vim.fn.jobstart(command, {
@@ -182,7 +182,7 @@ function N:scripts()
       end,
       on_exit = function(_, exit_code)
         vim.api.nvim_buf_set_lines(output_buf, -1, -1, false, { "", "Process exited with code: " .. exit_code })
-      end
+      end,
     })
   end)
 end

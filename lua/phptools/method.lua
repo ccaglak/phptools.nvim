@@ -5,12 +5,147 @@ local buf_request_sync = vim.lsp.buf_request_sync
 local jump_to_location = vim.lsp.util.jump_to_location
 local make_position_params = vim.lsp.util.make_position_params
 
-local Method = {}
+local Method = {
+  templates = {
+    default = {
+      "    public function %s()",
+      "    {",
+      "        // TODO: Implement method",
+      "    }",
+    },
+    scoped_call_expression = {
+      "    public static function %s()",
+      "    {",
+      "        // TODO: Implement static method",
+      "    }",
+    },
+    class_constant_access_expression = {
+      "    case %s;",
+    },
+    -- Add more default templates here
+  },
+}
 Method.__index = Method
 
 function Method.new()
   local self = setmetatable({}, Method)
+  self.params = nil
+  self.current_file = nil
+  self.parent = nil
+  self.method = nil
+  self.template = nil
+  self.variable_or_scope = nil
   return self
+end
+
+function Method:init()
+  self.params = make_position_params()
+  self.current_file = self.params.textDocument.uri:gsub("file://", "")
+  self.parent, self.method, self.variable_or_scope = self:get_position()
+end
+
+function Method:run()
+  self:init()
+  if not self.parent or not self.method or not self.variable_or_scope then
+    return
+  end
+
+  local method_position = self:create_position_params(self.method)
+
+  if self:find_and_jump_to_definition(method_position) then
+    return
+  end
+
+  if self.variable_or_scope.text == "this" then
+    self:handle_this_scope()
+  else
+    self:handle_other_scope()
+  end
+end
+
+function Method:get_position()
+  local cnode = tree.cnode()
+  local node = cnode.node:parent()
+  local node_type = node:type()
+  if node_type == "scoped_call_expression" or node_type == "class_constant_access_expression" then
+    self.template = node_type
+    return node, cnode, tree.children(node, "name")
+  end
+
+  if node_type == "member_call_expression" then
+    self.template = "default"
+    local object = tree.child(node, "object")
+    if object then
+      if object.node:type() == "parenthesized_expression" then
+        local object_creation = tree.children(object.node, "object_creation_expression")
+        return object.node, cnode, tree.children(object_creation.node, "name")
+      end
+
+      if object.node:type() == "variable_name" and tree.get_text(object.node) == "$this" then
+        return object.node, cnode, tree.children(object.node, "name")
+      end
+      if object.node:type() == "variable_name" then
+        local variable_position = self:create_position_params(object)
+        self:find_and_jump_to_definition(variable_position)
+        local class
+        local assignment = tree.find_parent(tree.cursor(), "assignment_expression")
+        if assignment then
+          local right_side = tree.children(assignment.node, "object_creation_expression")
+          class = tree.children(right_side.node, "name")
+        end
+
+        return node, cnode, class
+      end
+    end
+  end
+end
+
+function Method:handle_this_scope()
+  local bufnr = self:get_buffer(self.current_file)
+  self:add_to_buffer(self:generate_method_lines(self.method.text), bufnr)
+end
+
+function Method:handle_other_scope()
+  local variable_position = self:create_position_params(self.variable_or_scope)
+  local location = self:find_and_jump_to_definition(variable_position)
+  local uri = location and (location.uri or location.targetUri)
+  if uri then
+    local file_path = uri:gsub("file://", "")
+    local bufnr = self:get_buffer(file_path)
+    self:add_to_buffer(self:generate_method_lines(self.method.text), bufnr)
+  else
+    self:handle_undefined_class()
+  end
+end
+
+function Method:handle_undefined_class()
+  _G.done = false
+  vim.fn.cursor({ self.variable_or_scope.range[1] + 1, self.variable_or_scope.range[2] + 2 })
+  require("phptools.class"):run()
+  self:await_class_creation()
+end
+
+local function await(cond, after)
+  local timer = vim.loop.new_timer()
+  timer:start(
+    0,
+    250,
+    vim.schedule_wrap(function()
+      if cond() then
+        timer:stop()
+        after()
+      end
+    end)
+  )
+end
+
+function Method:await_class_creation()
+  await(function()
+    return _G.done
+  end, function()
+    local bufnr = self:get_buffer(_G.filepath)
+    self:add_to_buffer(self:generate_method_lines(self.method.text), bufnr)
+  end)
 end
 
 function Method:create_position_params(node)
@@ -19,7 +154,7 @@ function Method:create_position_params(node)
     position = {
       character = node.range[2] + 1,
       line = node.range[1],
-    }
+    },
   }
 end
 
@@ -40,12 +175,12 @@ function Method:find_and_jump_to_definition(params, methods)
 end
 
 function Method:generate_method_lines(method_name)
-  return {
-    string.format("    public function %s()", method_name),
-    "    {",
-    "        // TODO: Implement method",
-    "    }",
-  }
+  local template = self.templates[self.template]
+  local lines = {}
+  for _, line in ipairs(template) do
+    table.insert(lines, string.format(line, method_name))
+  end
+  return lines
 end
 
 function Method:get_buffer(filename)
@@ -54,101 +189,19 @@ end
 
 function Method:add_to_buffer(lines, bufnr)
   bufnr = bufnr or api.nvim_get_current_buf()
-  if not api.nvim_buf_is_valid(bufnr) then return end
+  if not api.nvim_buf_is_valid(bufnr) then
+    return
+  end
 
   fn.bufload(bufnr)
   local lastline = api.nvim_buf_line_count(bufnr)
   api.nvim_buf_set_lines(bufnr, lastline - 1, lastline - 1, true, lines)
 
   api.nvim_set_current_buf(bufnr)
-  api.nvim_buf_call(bufnr, function() vim.cmd("silent! write! | edit") end)
+  api.nvim_buf_call(bufnr, function()
+    vim.cmd("silent! write! | edit")
+  end)
   fn.cursor({ lastline + 2, 9 })
-end
-
-local function await(cond, after)
-  local timer = vim.loop.new_timer()
-  timer:start(0, 250, vim.schedule_wrap(function()
-    if cond() then
-      timer:stop()
-      after()
-    end
-  end))
-end
-
-
-function Method:run()
-  local params = make_position_params()
-  local current_file = params.textDocument.uri:gsub("file://", "")
-  local parent, method, variable_or_scope = self:get_position()
-  if not parent or not method or not variable_or_scope then return end
-
-  local method_position = self:create_position_params(method)
-
-  if self:find_and_jump_to_definition(method_position) then return end
-  local file_path
-  if variable_or_scope.text == "this" then
-    file_path = current_file
-  else
-    local variable_position = self:create_position_params(variable_or_scope)
-    local location = self:find_and_jump_to_definition(variable_position)
-    local uri = location and (location.uri or location.targetUri)
-    if uri ~= nil then
-      file_path = uri:gsub("file://", "")
-    else
-      _G.done = false
-      vim.fn.cursor({ variable_or_scope.range[1] + 1, variable_or_scope.range[2] + 2 })
-      require("phptools.class"):run()
-      await(function()
-        if _G.done then
-          return true
-        end
-      end, function()
-        local bufnr = self:get_buffer(_G.filepath)
-        self:add_to_buffer(self:generate_method_lines(method.text), bufnr)
-      end)
-      return
-    end
-  end
-
-  if file_path then
-    local bufnr = self:get_buffer(file_path)
-    self:add_to_buffer(self:generate_method_lines(method.text), bufnr)
-  end
-end
-
-function Method:get_position()
-  local cnode = tree.cnode()
-  local node = cnode.node:parent()
-  local node_type = node:type()
-  if node_type == "scoped_call_expression" or node_type == "class_constant_access_expression" then
-    return node, cnode, tree.children(node, "name")
-  end
-
-  if node_type == "member_call_expression" then
-    local object = tree.child(node, "object")
-    if object then
-      if object.node:type() == "parenthesized_expression" then
-        local object_creation = tree.children(object.node, "object_creation_expression")
-        return object.node, cnode, tree.children(object_creation.node, "name")
-      end
-
-      if object.node:type() == "variable_name" and tree.get_text(object.node) == "$this" then
-        return object.node, cnode, tree.children(object.node, "name")
-      end
-      if object.node:type() == "variable_name" then
-        local variable_position = self:create_position_params(object)
-        self:find_and_jump_to_definition(variable_position)
-        local class
-        local assignment = tree.find_parent(tree.cursor(), "assignment_expression")
-        if assignment then
-          local right_side = tree.children(assignment.node, 'object_creation_expression')
-          class = tree.children(right_side.node, "name")
-        end
-
-        return node, cnode, class
-      end
-    end
-  end
 end
 
 return Method
