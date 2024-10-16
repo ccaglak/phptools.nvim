@@ -27,18 +27,10 @@ local Method = {
 }
 Method.__index = Method
 
-function Method.new()
-  local self = setmetatable({}, Method)
-  self.params = nil
-  self.current_file = nil
-  self.parent = nil
-  self.method = nil
-  self.template = nil
-  self.variable_or_scope = nil
-  return self
-end
+
 
 function Method:init()
+  self.template = nil
   self.params = make_position_params()
   self.current_file = self.params.textDocument.uri:gsub("file://", "")
   self.parent, self.method, self.variable_or_scope = self:get_position()
