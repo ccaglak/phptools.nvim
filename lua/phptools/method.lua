@@ -96,7 +96,7 @@ function Method:run()
       file_path = uri:gsub("file://", "")
     else
       _G.done = false
-
+      vim.fn.cursor({ variable_or_scope.range[1] + 1, variable_or_scope.range[2] + 2 })
       require("phptools.class"):run()
       await(function()
         if _G.done then
@@ -144,7 +144,7 @@ function Method:get_position()
           local right_side = tree.children(assignment.node, 'object_creation_expression')
           class = tree.children(right_side.node, "name")
         end
-        vim.fn.cursor({ class.range[1] + 1, class.range[2] + 2 })
+
         return node, cnode, class
       end
     end
