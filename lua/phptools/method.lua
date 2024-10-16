@@ -1,7 +1,9 @@
 local tree = require("phptools.treesitter")
-local lsp = vim.lsp
 local api = vim.api
 local fn = vim.fn
+local buf_request_sync = vim.lsp.buf_request_sync
+local jump_to_location = vim.lsp.util.jump_to_location
+local make_position_params = vim.lsp.util.make_position_params
 
 local Method = {}
 Method.__index = Method
@@ -13,7 +15,7 @@ end
 
 function Method:create_position_params(node)
   return {
-    textDocument = lsp.util.make_position_params().textDocument,
+    textDocument = make_position_params().textDocument,
     position = {
       character = node.range[2] + 1,
       line = node.range[1],
@@ -24,11 +26,11 @@ end
 function Method:find_and_jump_to_definition(params, methods)
   methods = methods or { "textDocument/definition", "textDocument/typeDefinition" }
   for _, method in ipairs(methods) do
-    local results = lsp.buf_request_sync(0, method, params, 1000)
+    local results = buf_request_sync(0, method, params, 1000)
     if results and not vim.tbl_isempty(results) then
       for _, result in pairs(results) do
         if result.result and #result.result > 0 then
-          lsp.util.jump_to_location(result.result[1], "utf-8")
+          jump_to_location(result.result[1], "utf-8")
           return result.result[1]
         end
       end
@@ -64,17 +66,18 @@ function Method:add_to_buffer(lines, bufnr)
 end
 
 local function await(cond, after)
-  if not cond() then
-    vim.defer_fn(function()
-      await(cond, after)
-    end, 250)
-    return
-  end
-  after()
+  local timer = vim.loop.new_timer()
+  timer:start(0, 250, vim.schedule_wrap(function()
+    if cond() then
+      timer:stop()
+      after()
+    end
+  end))
 end
 
+
 function Method:run()
-  local params = lsp.util.make_position_params()
+  local params = make_position_params()
   local current_file = params.textDocument.uri:gsub("file://", "")
   local parent, method, variable_or_scope = self:get_position()
   if not parent or not method or not variable_or_scope then return end
@@ -146,8 +149,6 @@ function Method:get_position()
       end
     end
   end
-
-  return nil
 end
 
 return Method
