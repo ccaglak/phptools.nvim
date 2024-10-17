@@ -2,19 +2,12 @@ local tree = require("phptools.treesitter")
 
 local Etter = {}
 
--- Inline logging function
-local function log(level, message)
-  local levels = { DEBUG = 1, INFO = 2, WARN = 3, ERROR = 4 }
-  local current_level = levels.INFO -- Set this to the desired log level
-  if levels[level] >= current_level then
-    print(string.format("[%s] %s", level, message))
-  end
-end
+
 
 function Etter:new()
   local instance = setmetatable({}, { __index = Etter })
   instance.config = {
-    indentation = 4, -- Default indentation, can be customized
+    indentation = 4,
   }
   return instance
 end
@@ -121,7 +114,6 @@ function Etter:get_position()
   local function find_node(node_type)
     local node = tree.parent(node_type)
     if node then
-      log("DEBUG", "Found " .. node_type)
       return node
     end
     return nil
@@ -129,7 +121,6 @@ function Etter:get_position()
 
   self.parent = find_node("property_declaration") or find_node("property_promotion_parameter")
   if not self.parent then
-    log("ERROR", "Could not find parent node")
     return false
   end
 
@@ -157,7 +148,6 @@ function Etter:get_position()
   if self.parent.type ~= "property_promotion_parameter" then
     self.property = tree.children(self.parent.node, "property_element")
     if not self.property then
-      log("ERROR", "Could not find property_element")
       return false
     end
     self.variable = tree.children(self.property.node, "variable_name")
@@ -166,7 +156,6 @@ function Etter:get_position()
   end
 
   if not self.variable then
-    log("ERROR", "Could not find variable_name")
     return false
   end
 

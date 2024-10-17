@@ -152,18 +152,21 @@ end
 
 function Method:find_and_jump_to_definition(params, methods)
   methods = methods or { "textDocument/definition", "textDocument/typeDefinition" }
-  for _, method in ipairs(methods) do
-    local results = buf_request_sync(0, method, params, 1000)
-    if results and not vim.tbl_isempty(results) then
-      for _, result in pairs(results) do
-        if result.result and #result.result > 0 then
-          jump_to_location(result.result[1], "utf-8")
-          return result.result[1]
+  vim.loop.new_async(function()
+    for _, method in ipairs(methods) do
+      local results = buf_request_sync(0, method, params, 1000)
+      if results and not vim.tbl_isempty(results) then
+        for _, result in pairs(results) do
+          if result.result and #result.result > 0 then
+            vim.schedule(function()
+              jump_to_location(result.result[1], "utf-8")
+            end)
+            return result.result[1]
+          end
         end
       end
     end
-  end
-  return nil
+  end):run()
 end
 
 function Method:generate_method_lines(method_name)
@@ -187,13 +190,14 @@ function Method:add_to_buffer(lines, bufnr)
 
   fn.bufload(bufnr)
   local lastline = api.nvim_buf_line_count(bufnr)
+
   api.nvim_buf_set_lines(bufnr, lastline - 1, lastline - 1, true, lines)
 
   api.nvim_set_current_buf(bufnr)
   api.nvim_buf_call(bufnr, function()
     vim.cmd("silent! write! | edit")
   end)
-  fn.cursor({ lastline + 2, 9 })
+  fn.cursor({ lastline + #lines, 9 })
 end
 
 return Method

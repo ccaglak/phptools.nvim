@@ -18,15 +18,14 @@ local function parse(str)
   return "namespace " .. psr:sub(1, -2) .. ";"
 end
 
-function N.resolve_namespace(current_dir)
-  current_dir = current_dir or vim.fn.expand("%:h")
+function N.resolve_namespace()
   local composer_data = N.read_composer_file()
   if not composer_data then
     return nil
   end
 
   local prefix_and_src = N.get_prefix_and_src()
-  current_dir = vim.fn.fnamemodify(current_dir, ":h")
+  local current_dir = vim.fn.expand("%:h")
   current_dir = current_dir:gsub(root, ""):gsub(sep, "\\")
 
   for _, entry in ipairs(prefix_and_src or {}) do
@@ -84,13 +83,13 @@ function N.get_prefix_and_src()
 
   if autoload["psr-4"] ~= nil then
     for prefix, src in pairs(autoload["psr-4"]) do
-      table.insert(result, { prefix = prefix, src = src })
+      table.insert(result, { prefix = prefix, src = src:gsub(sep .. "$", "") })
     end
   end
 
   if composer_data["autoload-dev"] ~= nil and composer_data["autoload-dev"]["psr-4"] ~= nil then
     for prefix, src in pairs(composer_data["autoload-dev"]["psr-4"]) do
-      table.insert(result, { prefix = prefix, src = src })
+      table.insert(result, { prefix = prefix, src = src:gsub(sep .. "$", "") })
     end
   end
 
