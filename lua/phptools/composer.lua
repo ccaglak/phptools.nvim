@@ -18,18 +18,18 @@ local function parse(str)
   return "namespace " .. psr:sub(1, -2) .. ";"
 end
 
-function N.resolve_namespace()
+function N.resolve_namespace(current_dir)
   local composer_data = N.read_composer_file()
   if not composer_data then
     return nil
   end
 
   local prefix_and_src = N.get_prefix_and_src()
-  local current_dir = vim.fn.expand("%:h")
+  current_dir = current_dir or vim.fn.expand("%:h")
   current_dir = current_dir:gsub(root, ""):gsub(sep, "\\")
 
   for _, entry in ipairs(prefix_and_src or {}) do
-    if current_dir:find(entry.src:sub(1, -1)) ~= nil then
+    if current_dir:find(entry.src) ~= nil then
       return parse(current_dir:gsub(entry.src, entry.prefix))
     end
   end
