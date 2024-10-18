@@ -27,8 +27,6 @@ local Method = {
 }
 Method.__index = Method
 
-
-
 function Method:init()
   self.template = nil
   self.params = make_position_params()
@@ -152,21 +150,18 @@ end
 
 function Method:find_and_jump_to_definition(params, methods)
   methods = methods or { "textDocument/definition", "textDocument/typeDefinition" }
-  vim.loop.new_async(function()
-    for _, method in ipairs(methods) do
-      local results = buf_request_sync(0, method, params, 1000)
-      if results and not vim.tbl_isempty(results) then
-        for _, result in pairs(results) do
-          if result.result and #result.result > 0 then
-            vim.schedule(function()
-              jump_to_location(result.result[1], "utf-8")
-            end)
-            return result.result[1]
-          end
+  for _, method in ipairs(methods) do
+    local results = buf_request_sync(0, method, params, 1000)
+    if results and not vim.tbl_isempty(results) then
+      for _, result in pairs(results) do
+        if result.result and #result.result > 0 then
+          jump_to_location(result.result[1], "utf-8")
+          return result.result[1]
         end
       end
     end
-  end):run()
+  end
+  return nil
 end
 
 function Method:generate_method_lines(method_name)

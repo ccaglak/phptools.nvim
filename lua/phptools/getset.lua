@@ -2,8 +2,6 @@ local tree = require("phptools.treesitter")
 
 local Etter = {}
 
-
-
 function Etter:new()
   local instance = setmetatable({}, { __index = Etter })
   instance.config = {

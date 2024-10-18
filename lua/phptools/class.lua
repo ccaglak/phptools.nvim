@@ -144,6 +144,7 @@ function Class:get_parent()
     "use_declaration",
     "class_constant_access_expression",
     "scoped_call_expression",
+    "simple_parameter",
   }) do
     local parent = tree.parent(type)
     if parent and parent.type == type then
