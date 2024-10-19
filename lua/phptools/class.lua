@@ -59,13 +59,13 @@ function Class:find_or_create_class()
   end
 end
 
+-- normalizes path for unix or windows
 local function normalize_path(path)
-  path = path:gsub("/$", "")
-  if path ~= "" and path:sub(-1) ~= "/" then
-    path = path .. "/"
+  path = path:gsub("[\\/]+$", "")
+  if path ~= "" then
+    path = path .. sep
   end
-  path = path:gsub("\\", "/")
-  path = path:gsub("//+", "/")
+  path = path:gsub("[\\/]+", sep)
   return path
 end
 
@@ -87,7 +87,7 @@ function Class:create_new_class()
     vim.fn.mkdir(dir, "p")
 
     local file_path = dir .. self.class_name.text .. ".php"
-    self.file_ns = composer.resolve_namespace(file_path)
+    self.file_ns = composer.resolve_namespace(dir)
     local current_ns = composer.generate_use_statement(file_path)
 
     self:add_to_current_buffer({ current_ns })

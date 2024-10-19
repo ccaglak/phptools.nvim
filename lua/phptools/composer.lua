@@ -23,9 +23,9 @@ function N.resolve_namespace(current_dir)
   if not composer_data then
     return nil
   end
+
   local prefix_and_src = N.get_prefix_and_src()
   current_dir = current_dir or vim.fn.expand("%:h")
-  current_dir = vim.fn.fnamemodify(current_dir, ":h")
   current_dir = current_dir:gsub(root, ""):gsub(sep, "\\")
 
   for _, entry in ipairs(prefix_and_src or {}) do

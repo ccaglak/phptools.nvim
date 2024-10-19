@@ -10,19 +10,18 @@ local Method = {
     default = {
       "    public function %s()",
       "    {",
-      "        // TODO: Implement method",
+      "        // TODO: ",
       "    }",
     },
     scoped_call_expression = {
       "    public static function %s()",
       "    {",
-      "        // TODO: Implement static method",
+      "        // TODO: ",
       "    }",
     },
     class_constant_access_expression = {
       "    case %s;",
     },
-    -- Add more default templates here
   },
 }
 Method.__index = Method
@@ -116,7 +115,7 @@ function Method:handle_undefined_class()
 end
 
 local function await(cond, after)
-  local timer = vim.loop.new_timer()
+  local timer = vim.uv.new_timer()
   timer:start(
     0,
     250,
