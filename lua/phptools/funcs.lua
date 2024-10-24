@@ -7,7 +7,6 @@ function string.ends(String, End)
 end
 
 _G.sep = vim.uv.os_uname().sysname == "Windows_NT" and "\\" or "/"
-
 _G.root = vim.fs.root(0, { "composer.json", ".git", ".env" }) or vim.uv.cwd()
 
 function string.pascalcase(str, deli)
@@ -50,7 +49,7 @@ function io.pathinfo(path)
   local extpos = pos + 1
   while pos > 0 do
     local b = string.byte(path, pos)
-    if b == 46 then -- 46 = char "."
+    if b == 46 then     -- 46 = char "."
       extpos = pos
     elseif b == 47 then -- 47 = char "/"
       break

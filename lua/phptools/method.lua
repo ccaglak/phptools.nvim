@@ -2,7 +2,7 @@ local tree = require("phptools.treesitter")
 local api = vim.api
 local fn = vim.fn
 local buf_request_sync = vim.lsp.buf_request_sync
-local jump_to_location = vim.lsp.util.jump_to_location
+local jump_to_location = vim.lsp.jump_to_location
 local make_position_params = vim.lsp.util.make_position_params
 
 local Method = {
@@ -20,7 +20,7 @@ local Method = {
       "    }",
     },
     class_constant_access_expression = {
-      "    case %s;",
+      "    case %s; // TODO:",
     },
   },
 }
@@ -108,7 +108,7 @@ function Method:handle_other_scope()
 end
 
 function Method:handle_undefined_class()
-  _G.done = false
+  _G._filepath_ = nil
   vim.fn.cursor({ self.variable_or_scope.range[1] + 1, self.variable_or_scope.range[2] + 2 })
   require("phptools.class"):run()
   self:await_class_creation()
@@ -130,9 +130,9 @@ end
 
 function Method:await_class_creation()
   await(function()
-    return _G.done
+    return _G._filepath_ ~= nil
   end, function()
-    local bufnr = self:get_buffer(_G.filepath)
+    local bufnr = self:get_buffer(_G._filepath_)
     self:add_to_buffer(self:generate_method_lines(self.method.text), bufnr)
   end)
 end

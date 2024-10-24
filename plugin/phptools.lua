@@ -8,7 +8,6 @@ local command_map = {
   Scripts = "Scripts",
   Refactor = "Refactor",
   Create = "Create",
-  Cost = "Cost",
   Composer = "Composer",
 }
 
