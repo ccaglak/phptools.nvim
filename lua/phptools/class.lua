@@ -53,7 +53,7 @@ function Class:find_or_create_class()
   end
 
   if self.file_location[1] then
-    vim.lsp.util.jump_to_location(self.file_location[1], "utf-8")
+    vim.lsp.jump_to_location(self.file_location[1], "utf-8")
   else
     self:create_new_class()
   end
