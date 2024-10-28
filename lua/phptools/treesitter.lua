@@ -28,6 +28,14 @@ M.cnode = function()
   return { node = node, text = M.get_text(node), range = { node:range() }, type = node:type() }
 end
 
+M.ctnode = function(type)
+  local node = M.cursor()
+  if node:type() ~= type then
+    return { node = node, text = M.get_text(node), range = { node:range() }, type = node:type() }
+  end
+  return nil
+end
+
 M.parent = function(type)
   local node = M.cursor()
   while node and node:type() ~= type do

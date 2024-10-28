@@ -49,3 +49,7 @@ end
 if not vim.lsp.get_clients then -- to be removed v12
   vim.lsp.get_clients = vim.lsp.get_active_clients
 end
+
+if not vim.lsp.util.show_document then -- to be removed v12
+  vim.lsp.util.show_document = vim.lsp.util.jump_to_location
+end

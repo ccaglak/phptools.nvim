@@ -2,7 +2,7 @@ local tree = require("phptools.treesitter")
 local api = vim.api
 local fn = vim.fn
 local buf_request_sync = vim.lsp.buf_request_sync
-local jump_to_location = vim.lsp.util.jump_to_location
+local jump_to_location = vim.lsp.util.show_document
 local make_position_params = vim.lsp.util.make_position_params
 
 local Method = {
