@@ -56,6 +56,7 @@ function Method:get_position()
   local cnode = tree.cnode()
   local node = cnode.node:parent()
   local node_type = node:type()
+
   if node_type == "scoped_call_expression" or node_type == "class_constant_access_expression" then
     self.template = node_type
     return node, cnode, tree.children(node, "name")
@@ -68,6 +69,15 @@ function Method:get_position()
       if object.node:type() == "parenthesized_expression" then
         local object_creation = tree.children(object.node, "object_creation_expression")
         return object.node, cnode, tree.children(object_creation.node, "name")
+      end
+
+      if object.node:type() == "member_access_expression" then
+        local name = tree.children(object.node, "name")
+        local variable_position = self:create_position_params(name)
+        self:find_and_jump_to_definition(variable_position)
+        local vparent = tree.parent("property_declaration")
+        local class = tree.children(vparent.node, "named_type")
+        return node, cnode, class
       end
 
       if object.node:type() == "variable_name" and tree.get_text(object.node) == "$this" then

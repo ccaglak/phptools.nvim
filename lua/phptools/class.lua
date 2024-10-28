@@ -43,7 +43,7 @@ function Class:get_class_name()
         text = tree.get_text(self.parent.node:child()),
         range = { self.parent.node:child():range() },
       }
-      or tree.children(self.parent.node, "name")
+    or tree.children(self.parent.node, "name")
 end
 
 function Class:find_or_create_class()

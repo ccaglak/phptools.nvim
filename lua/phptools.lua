@@ -34,7 +34,6 @@ M.setup = function(args)
   require("phptools.toggle").setup(M.config.toggle_options)
 end
 
-
 M.method = function()
   require("phptools.method"):run()
 end
