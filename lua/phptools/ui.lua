@@ -13,18 +13,18 @@ M.select = function(items, opts, on_choice)
   local height = #items + 2
 
   local win = api.nvim_open_win(buf, true, {
-    relative = 'editor',
+    relative = "editor",
     width = width,
     height = height,
     row = math.floor((vim.o.lines - height) / 2),
     col = math.floor((vim.o.columns - width) / 2),
-    style = 'minimal',
-    border = 'rounded'
+    style = "minimal",
+    border = "rounded",
   })
 
   -- Set window options
-  api.nvim_win_set_option(win, 'cursorline', true)
-  api.nvim_win_set_option(win, 'winhl', 'Normal:Normal,FloatBorder:FloatBorder')
+  api.nvim_win_set_option(win, "cursorline", true)
+  api.nvim_win_set_option(win, "winhl", "Normal:Normal,FloatBorder:FloatBorder")
 
   -- Format items based on kind
   local lines = { opts.prompt or "Select one:" }
@@ -37,8 +37,8 @@ M.select = function(items, opts, on_choice)
   end
 
   api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-  api.nvim_buf_set_option(buf, 'modifiable', false)
-  api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
+  api.nvim_buf_set_option(buf, "modifiable", false)
+  api.nvim_buf_set_option(buf, "bufhidden", "wipe")
 
   -- Keymaps
   local function close_window()
@@ -48,8 +48,8 @@ M.select = function(items, opts, on_choice)
   end
 
   local keymaps = {
-    ['<CR>'] = function()
-      local idx = vim.fn.line('.') - 1
+    ["<CR>"] = function()
+      local idx = vim.fn.line(".") - 1
       close_window()
       if idx > 0 and idx <= #items then
         on_choice(items[idx], idx)
@@ -57,23 +57,23 @@ M.select = function(items, opts, on_choice)
         on_choice(nil, nil)
       end
     end,
-    ['q'] = function()
+    ["q"] = function()
       close_window()
       on_choice(nil, nil)
     end,
-    ['<Esc>'] = function()
+    ["<Esc>"] = function()
       close_window()
       on_choice(nil, nil)
     end,
-    ['j'] = 'j',
-    ['k'] = 'k',
+    ["j"] = "j",
+    ["k"] = "k",
   }
 
   for key, mapping in pairs(keymaps) do
-    if type(mapping) == 'function' then
-      vim.keymap.set('n', key, mapping, { buffer = buf, nowait = true })
+    if type(mapping) == "function" then
+      vim.keymap.set("n", key, mapping, { buffer = buf, nowait = true })
     else
-      vim.keymap.set('n', key, mapping, { buffer = buf })
+      vim.keymap.set("n", key, mapping, { buffer = buf })
     end
   end
 
@@ -87,24 +87,24 @@ M.input = function(opts, on_confirm)
   local height = 1
 
   local win = api.nvim_open_win(buf, true, {
-    relative = 'editor',
+    relative = "editor",
     width = width,
     height = height,
     row = math.floor((vim.o.lines - height) / 2),
     col = math.floor((vim.o.columns - width) / 2),
-    style = 'minimal',
-    border = 'rounded',
+    style = "minimal",
+    border = "rounded",
     title = opts.prompt or "Input",
-    title_pos = 'center'
+    title_pos = "center",
   })
 
   -- Set window options
-  api.nvim_win_set_option(win, 'winhl', 'Normal:Normal,FloatBorder:FloatBorder')
+  api.nvim_win_set_option(win, "winhl", "Normal:Normal,FloatBorder:FloatBorder")
 
   -- Set initial content
   local default = opts.default or ""
   api.nvim_buf_set_lines(buf, 0, -1, false, { default })
-  api.nvim_buf_set_option(buf, 'modifiable', true)
+  api.nvim_buf_set_option(buf, "modifiable", true)
 
   -- Handle completion if provided
   if opts.completion then
@@ -112,33 +112,33 @@ M.input = function(opts, on_confirm)
   end
 
   -- Enter insert mode
-  vim.cmd('startinsert!')
+  vim.cmd("startinsert!")
   if default ~= "" then
     api.nvim_win_set_cursor(win, { 1, #default })
   end
 
   local function close_window()
     if api.nvim_win_is_valid(win) then
-      vim.cmd('stopinsert')
+      vim.cmd("stopinsert")
       api.nvim_win_close(win, true)
     end
   end
 
   -- Keymaps
   local keymaps = {
-    ['<CR>'] = function()
+    ["<CR>"] = function()
       local input = api.nvim_buf_get_lines(buf, 0, 1, false)[1]
       close_window()
       on_confirm(input)
     end,
-    ['<Esc>'] = function()
+    ["<Esc>"] = function()
       close_window()
       on_confirm(nil)
     end,
   }
 
   for key, mapping in pairs(keymaps) do
-    vim.keymap.set('i', key, mapping, { buffer = buf, nowait = true })
+    vim.keymap.set("i", key, mapping, { buffer = buf, nowait = true })
   end
 end
 

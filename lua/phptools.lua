@@ -64,11 +64,11 @@ M.namespace = function()
   require("phptools.composer"):resolve()
 end
 
-vim.keymap.set('n', '<Leader>ta', require('phptools.tests').test.all, { desc = 'Run all tests' })
-vim.keymap.set('n', '<Leader>tf', require('phptools.tests').test.file, { desc = 'Run current file tests' })
-vim.keymap.set('n', '<Leader>tl', require('phptools.tests').test.line, { desc = 'Run test at cursor' })
-vim.keymap.set('n', '<Leader>ts', require('phptools.tests').test.filter, { desc = 'Search and run test' })
-vim.keymap.set('n', '<Leader>tp', require('phptools.tests').test.parallel, { desc = 'Run tests in parallel' })
-vim.keymap.set('n', '<Leader>tr', require('phptools.tests').test.rerun, { desc = 'Rerun last test' })
+vim.keymap.set("n", "<Leader>ta", require("phptools.tests").test.all, { desc = "Run all tests" })
+vim.keymap.set("n", "<Leader>tf", require("phptools.tests").test.file, { desc = "Run current file tests" })
+vim.keymap.set("n", "<Leader>tl", require("phptools.tests").test.line, { desc = "Run test at cursor" })
+vim.keymap.set("n", "<Leader>ts", require("phptools.tests").test.filter, { desc = "Search and run test" })
+vim.keymap.set("n", "<Leader>tp", require("phptools.tests").test.parallel, { desc = "Run tests in parallel" })
+vim.keymap.set("n", "<Leader>tr", require("phptools.tests").test.rerun, { desc = "Rerun last test" })
 
 return M

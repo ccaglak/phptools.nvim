@@ -8,30 +8,28 @@ local test_patterns = {
   test_prefix = "public%s+function%s+(test[%w_]+)",
   test_function = "function%s+(test[%w_]+)",
   test_call = "test%(['\"]([^'\"]+)['\"]",
-  it_block = "it%(['\"]([^'\"]+)['\"]"
+  it_block = "it%(['\"]([^'\"]+)['\"]",
 }
 
 local command_templates = {
   all = "%s",
   filter = "%s --filter=%s",
   file = "%s %s",
-  parallel = "%s --parallel"
+  parallel = "%s --parallel",
 }
 
 local last_test = {
   type = nil,
-  args = nil
+  args = nil,
 }
 
 local function detect_test_framework()
-  return vim.fn.filereadable("./vendor/bin/pest") == 1
-      and "./vendor/bin/pest"
-      or "./vendor/bin/phpunit"
+  return vim.fn.filereadable("./vendor/bin/pest") == 1 and "./vendor/bin/pest" or "./vendor/bin/phpunit"
 end
 
 local test_cache = {
   names = {},
-  timestamps = {}
+  timestamps = {},
 }
 
 local function get_test_names()
@@ -53,18 +51,16 @@ local function get_test_names()
       for i, line in ipairs(content) do
         if line:match(test_patterns.annotation) and i < #content then
           local next_line = content[i + 1]
-          local method_name = next_line:match(test_patterns.method) or
-              next_line:match(test_patterns.function_only)
+          local method_name = next_line:match(test_patterns.method) or next_line:match(test_patterns.function_only)
           if method_name then
             table.insert(file_tests, method_name)
           end
         end
 
-        local test_name =
-            line:match(test_patterns.test_prefix) or
-            line:match(test_patterns.test_function) or
-            line:match(test_patterns.test_call) or
-            line:match(test_patterns.it_block)
+        local test_name = line:match(test_patterns.test_prefix)
+          or line:match(test_patterns.test_function)
+          or line:match(test_patterns.test_call)
+          or line:match(test_patterns.it_block)
 
         if test_name then
           table.insert(file_tests, test_name)
@@ -82,7 +78,7 @@ local function get_test_names()
 end
 
 local function get_nearest_test()
-  local current_line = vim.fn.line('.')
+  local current_line = vim.fn.line(".")
   local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
 
   for i = current_line, 1, -1 do
@@ -90,18 +86,16 @@ local function get_nearest_test()
 
     if line:match(test_patterns.annotation) and i < #lines then
       local next_line = lines[i + 1]
-      local method_name = next_line:match(test_patterns.method) or
-          next_line:match(test_patterns.function_only)
+      local method_name = next_line:match(test_patterns.method) or next_line:match(test_patterns.function_only)
       if method_name then
         return method_name
       end
     end
 
-    local test_name =
-        line:match(test_patterns.test_prefix) or
-        line:match(test_patterns.test_function) or
-        line:match(test_patterns.test_call) or
-        line:match(test_patterns.it_block)
+    local test_name = line:match(test_patterns.test_prefix)
+      or line:match(test_patterns.test_function)
+      or line:match(test_patterns.test_call)
+      or line:match(test_patterns.it_block)
 
     if test_name then
       return test_name
@@ -135,7 +129,7 @@ function M.run(type, args)
     col = math.floor((vim.o.columns - width) / 2),
     row = math.floor((vim.o.lines - height) / 2),
     style = "minimal",
-    border = "rounded"
+    border = "rounded",
   })
 
   vim.fn.jobstart(command, {
@@ -149,19 +143,25 @@ function M.run(type, args)
       if data then
         vim.api.nvim_buf_set_lines(output_buf, -1, -1, false, data)
       end
-    end
+    end,
   })
 end
 
 M.test = {
-  all = function() M.run("all") end,
+  all = function()
+    M.run("all")
+  end,
   filter = function()
     local test_names = get_test_names()
     require("phptools.ui").select(test_names, {
       prompt = "Select test to run:",
-      format_item = function(item) return item end,
+      format_item = function(item)
+        return item
+      end,
     }, function(choice)
-      if choice then M.run("filter", choice) end
+      if choice then
+        M.run("filter", choice)
+      end
     end)
   end,
   file = function()
@@ -176,7 +176,9 @@ M.test = {
       vim.notify("No test found near cursor", vim.log.levels.WARN)
     end
   end,
-  parallel = function() M.run("all", "--parallel") end,
+  parallel = function()
+    M.run("all", "--parallel")
+  end,
   rerun = function()
     if last_test.type then
       M.run(last_test.type, last_test.args)
