@@ -40,14 +40,12 @@ local function get_test_names()
   for _, file in ipairs(handle) do
     local modified = vim.fn.getftime(file)
 
-    -- Check cache validity
     if test_cache.timestamps[file] == modified and test_cache.names[file] then
       vim.list_extend(all_test_names, test_cache.names[file])
     else
       local file_tests = {}
       local content = vim.fn.readfile(file)
 
-      -- Existing test parsing logic here
       for i, line in ipairs(content) do
         if line:match(test_patterns.annotation) and i < #content then
           local next_line = content[i + 1]
@@ -58,9 +56,9 @@ local function get_test_names()
         end
 
         local test_name = line:match(test_patterns.test_prefix)
-          or line:match(test_patterns.test_function)
-          or line:match(test_patterns.test_call)
-          or line:match(test_patterns.it_block)
+            or line:match(test_patterns.test_function)
+            or line:match(test_patterns.test_call)
+            or line:match(test_patterns.it_block)
 
         if test_name then
           table.insert(file_tests, test_name)
@@ -93,9 +91,9 @@ local function get_nearest_test()
     end
 
     local test_name = line:match(test_patterns.test_prefix)
-      or line:match(test_patterns.test_function)
-      or line:match(test_patterns.test_call)
-      or line:match(test_patterns.it_block)
+        or line:match(test_patterns.test_function)
+        or line:match(test_patterns.test_call)
+        or line:match(test_patterns.it_block)
 
     if test_name then
       return test_name
@@ -175,9 +173,6 @@ M.test = {
     else
       vim.notify("No test found near cursor", vim.log.levels.WARN)
     end
-  end,
-  parallel = function()
-    M.run("all", "--parallel")
   end,
   rerun = function()
     if last_test.type then
