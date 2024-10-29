@@ -32,7 +32,7 @@ M.setup = function(args)
     })
   end
   if M.config.ui == true then
-    require("phptools.ui")
+    require("phptools.ui").setup()
   end
 end
 
