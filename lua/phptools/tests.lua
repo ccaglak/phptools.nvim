@@ -13,7 +13,7 @@ local test_patterns = {
 
 local command_templates = {
   all = "%s",
-  filter = "%s --filter=%s",
+  filter = "%s --filter='%s'",
   file = "%s %s",
   parallel = "%s --parallel",
 }
@@ -137,6 +137,8 @@ end
 function M.run(type, args)
   local command = get_test_command(type, args)
 
+  dd(command)
+
   if not command then
     return
   end
@@ -153,8 +155,8 @@ function M.run(type, args)
   vim.api.nvim_buf_set_keymap(output_buf, 'n', '<Esc>', '<cmd>q<CR>', { noremap = true, silent = true })
 
 
-  local width = math.floor(vim.o.columns * 0.8)
-  local height = math.floor(vim.o.lines * 0.8)
+  local width = math.floor(vim.o.columns * 0.7)
+  local height = math.floor(vim.o.lines * 0.5)
   local win = vim.api.nvim_open_win(output_buf, true, {
     relative = "editor",
     width = width,
@@ -193,6 +195,7 @@ M.test = {
         end,
       }, function(choice)
         if choice then
+          dd(choice)
           M.run("filter", choice)
         end
       end)
