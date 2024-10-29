@@ -15,7 +15,7 @@ local get_visual_selection = function()
   vim.cmd('noau normal! "vy"')
   local text = vim.fn.getreg("v")
   vim.fn.setreg("v", {})
-  -- text = string.gsub(tostring(text), "\n", "")
+  -- text = string.gsub(tostring(text), "\n", "") -- removes newlines
   if #text > 0 then
     return text
   else
@@ -76,7 +76,6 @@ function M.refactor()
           local surrounded_code = surround_code(choice, code)
 
           if choice == "function" or choice == "method" then
-            -- Add function to the end of the file
             vim.cmd([['<,'>delete]])
             local lines = vim.split(surrounded_code, "\n", true)
             local last_line = vim.api.nvim_buf_line_count(0)
