@@ -27,70 +27,43 @@ local function detect_test_framework()
   return vim.fn.filereadable("./vendor/bin/pest") == 1 and "./vendor/bin/pest" or "./vendor/bin/phpunit"
 end
 
-local test_cache = {
-  names = {},
-  timestamps = {},
-}
-
-local function scan_test_files_async(callback)
+local function get_test_names(callback)
   vim.schedule(function()
-    local test_dir = vim.fn.getcwd() .. "/tests"
-    vim.fn.jobstart({ "find", test_dir, "-name", "*Test.php" }, {
+    vim.fn.jobstart({
+      "rg",
+      "--multiline",
+      "--multiline-dotall",
+      "-g",
+      "*Test.php",
+      "-e",
+      "@test[\\s\\S]*?function\\s+([\\w_]+)",
+      "-e",
+      "function\\s+(test[\\w_]+)",
+      "-e",
+      "test\\(['\"]([^'\"]+)['\"]",
+      "-e",
+      "it\\(['\"]([^'\"]+)['\"]",
+      "tests/",
+      "--no-filename",
+      "--only-matching",
+    }, {
       stdout_buffered = true,
       on_stdout = function(_, data)
         if data then
-          local test_files = {}
-          for _, file in ipairs(data) do
-            if file ~= "" then
-              table.insert(test_files, file)
+          local test_names = {}
+          for _, line in ipairs(data) do
+            local test_name = line:match("function%s+([%w_]+)")
+              or line:match("test%(['\"]([^'\"]+)['\"]")
+              or line:match("it%(['\"]([^'\"]+)['\"]")
+
+            if test_name then
+              table.insert(test_names, test_name)
             end
           end
-          callback(test_files)
+          callback(test_names)
         end
-      end
+      end,
     })
-  end)
-end
-
-local function get_test_names(callback)
-  scan_test_files_async(function(files)
-    local all_test_names = {}
-
-    for _, file in ipairs(files) do
-      local modified = vim.fn.getftime(file)
-
-      if test_cache.timestamps[file] == modified and test_cache.names[file] then
-        vim.list_extend(all_test_names, test_cache.names[file])
-      else
-        local file_tests = {}
-        local content = vim.fn.readfile(file)
-
-        for i, line in ipairs(content) do
-          if line:match(test_patterns.annotation) and i < #content then
-            local next_line = content[i + 1]
-            local method_name = next_line:match(test_patterns.method) or next_line:match(test_patterns.function_only)
-            if method_name then
-              table.insert(file_tests, method_name)
-            end
-          end
-
-          local test_name = line:match(test_patterns.test_prefix)
-              or line:match(test_patterns.test_function)
-              or line:match(test_patterns.test_call)
-              or line:match(test_patterns.it_block)
-
-          if test_name then
-            table.insert(file_tests, test_name)
-          end
-        end
-
-        test_cache.names[file] = file_tests
-        test_cache.timestamps[file] = modified
-        vim.list_extend(all_test_names, file_tests)
-      end
-    end
-
-    callback(all_test_names)
   end)
 end
 
@@ -110,9 +83,9 @@ local function get_nearest_test()
     end
 
     local test_name = line:match(test_patterns.test_prefix)
-        or line:match(test_patterns.test_function)
-        or line:match(test_patterns.test_call)
-        or line:match(test_patterns.it_block)
+      or line:match(test_patterns.test_function)
+      or line:match(test_patterns.test_call)
+      or line:match(test_patterns.it_block)
 
     if test_name then
       return test_name
@@ -133,11 +106,8 @@ local function get_test_command(type, args)
   return template and string.format(template, base_cmd, args or "")
 end
 
-
 function M.run(type, args)
   local command = get_test_command(type, args)
-
-  dd(command)
 
   if not command then
     return
@@ -151,9 +121,8 @@ function M.run(type, args)
   vim.api.nvim_buf_set_option(output_buf, "swapfile", false)
   vim.api.nvim_buf_set_option(output_buf, "bufhidden", "wipe")
 
-  vim.api.nvim_buf_set_keymap(output_buf, 'n', 'q', '<cmd>q<CR>', { noremap = true, silent = true })
-  vim.api.nvim_buf_set_keymap(output_buf, 'n', '<Esc>', '<cmd>q<CR>', { noremap = true, silent = true })
-
+  vim.api.nvim_buf_set_keymap(output_buf, "n", "q", "<cmd>q<CR>", { noremap = true, silent = true })
+  vim.api.nvim_buf_set_keymap(output_buf, "n", "<Esc>", "<cmd>q<CR>", { noremap = true, silent = true })
 
   local width = math.floor(vim.o.columns * 0.7)
   local height = math.floor(vim.o.lines * 0.5)
@@ -195,7 +164,6 @@ M.test = {
         end,
       }, function(choice)
         if choice then
-          dd(choice)
           M.run("filter", choice)
         end
       end)
