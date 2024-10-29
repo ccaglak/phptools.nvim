@@ -40,12 +40,14 @@ local function get_test_names()
   for _, file in ipairs(handle) do
     local modified = vim.fn.getftime(file)
 
+    -- Check cache validity
     if test_cache.timestamps[file] == modified and test_cache.names[file] then
       vim.list_extend(all_test_names, test_cache.names[file])
     else
       local file_tests = {}
       local content = vim.fn.readfile(file)
 
+      -- Existing test parsing logic here
       for i, line in ipairs(content) do
         if line:match(test_patterns.annotation) and i < #content then
           local next_line = content[i + 1]
@@ -118,6 +120,10 @@ function M.run(type, args)
   vim.api.nvim_buf_set_option(output_buf, "swapfile", false)
   vim.api.nvim_buf_set_option(output_buf, "bufhidden", "wipe")
 
+  vim.api.nvim_buf_set_keymap(output_buf, 'n', 'q', '<cmd>q<CR>', { noremap = true, silent = true })
+  vim.api.nvim_buf_set_keymap(output_buf, 'n', '<Esc>', '<cmd>q<CR>', { noremap = true, silent = true })
+
+
   local width = math.floor(vim.o.columns * 0.8)
   local height = math.floor(vim.o.lines * 0.8)
   local win = vim.api.nvim_open_win(output_buf, true, {
@@ -173,6 +179,9 @@ M.test = {
     else
       vim.notify("No test found near cursor", vim.log.levels.WARN)
     end
+  end,
+  parallel = function()
+    M.run("all", "--parallel")
   end,
   rerun = function()
     if last_test.type then
