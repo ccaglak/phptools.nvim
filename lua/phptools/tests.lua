@@ -32,49 +32,66 @@ local test_cache = {
   timestamps = {},
 }
 
-local function get_test_names()
-  local test_dir = vim.fn.getcwd() .. "/tests"
-  local all_test_names = {}
+local function scan_test_files_async(callback)
+  vim.schedule(function()
+    local test_dir = vim.fn.getcwd() .. "/tests"
+    vim.fn.jobstart({ "find", test_dir, "-name", "*Test.php" }, {
+      stdout_buffered = true,
+      on_stdout = function(_, data)
+        if data then
+          local test_files = {}
+          for _, file in ipairs(data) do
+            if file ~= "" then
+              table.insert(test_files, file)
+            end
+          end
+          callback(test_files)
+        end
+      end
+    })
+  end)
+end
 
-  local handle = vim.fn.glob(test_dir .. "/**/*Test.php", false, true)
-  for _, file in ipairs(handle) do
-    local modified = vim.fn.getftime(file)
+local function get_test_names(callback)
+  scan_test_files_async(function(files)
+    local all_test_names = {}
 
-    -- Check cache validity
-    if test_cache.timestamps[file] == modified and test_cache.names[file] then
-      vim.list_extend(all_test_names, test_cache.names[file])
-    else
-      local file_tests = {}
-      local content = vim.fn.readfile(file)
+    for _, file in ipairs(files) do
+      local modified = vim.fn.getftime(file)
 
-      -- Existing test parsing logic here
-      for i, line in ipairs(content) do
-        if line:match(test_patterns.annotation) and i < #content then
-          local next_line = content[i + 1]
-          local method_name = next_line:match(test_patterns.method) or next_line:match(test_patterns.function_only)
-          if method_name then
-            table.insert(file_tests, method_name)
+      if test_cache.timestamps[file] == modified and test_cache.names[file] then
+        vim.list_extend(all_test_names, test_cache.names[file])
+      else
+        local file_tests = {}
+        local content = vim.fn.readfile(file)
+
+        for i, line in ipairs(content) do
+          if line:match(test_patterns.annotation) and i < #content then
+            local next_line = content[i + 1]
+            local method_name = next_line:match(test_patterns.method) or next_line:match(test_patterns.function_only)
+            if method_name then
+              table.insert(file_tests, method_name)
+            end
+          end
+
+          local test_name = line:match(test_patterns.test_prefix)
+              or line:match(test_patterns.test_function)
+              or line:match(test_patterns.test_call)
+              or line:match(test_patterns.it_block)
+
+          if test_name then
+            table.insert(file_tests, test_name)
           end
         end
 
-        local test_name = line:match(test_patterns.test_prefix)
-            or line:match(test_patterns.test_function)
-            or line:match(test_patterns.test_call)
-            or line:match(test_patterns.it_block)
-
-        if test_name then
-          table.insert(file_tests, test_name)
-        end
+        test_cache.names[file] = file_tests
+        test_cache.timestamps[file] = modified
+        vim.list_extend(all_test_names, file_tests)
       end
-
-      -- Update cache
-      test_cache.names[file] = file_tests
-      test_cache.timestamps[file] = modified
-      vim.list_extend(all_test_names, file_tests)
     end
-  end
 
-  return all_test_names
+    callback(all_test_names)
+  end)
 end
 
 local function get_nearest_test()
@@ -168,16 +185,17 @@ M.test = {
     M.run("all")
   end,
   filter = function()
-    local test_names = get_test_names()
-    require("phptools.ui").select(test_names, {
-      prompt = "Select test to run:",
-      format_item = function(item)
-        return item
-      end,
-    }, function(choice)
-      if choice then
-        M.run("filter", choice)
-      end
+    get_test_names(function(test_names)
+      require("phptools.ui").select(test_names, {
+        prompt = "Select test to run:",
+        format_item = function(item)
+          return item
+        end,
+      }, function(choice)
+        if choice then
+          M.run("filter", choice)
+        end
+      end)
     end)
   end,
   file = function()
