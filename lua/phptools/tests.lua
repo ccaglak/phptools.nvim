@@ -106,12 +106,24 @@ end
 
 local function get_test_command(type, args)
   local base_cmd = detect_test_framework()
+  if args and type == "file" then
+    if not string.match(args, "Test%.php$") then
+      vim.notify("Not a test file. File must end with Test.php", vim.log.levels.WARN)
+      return nil
+    end
+  end
   local template = command_templates[type]
   return template and string.format(template, base_cmd, args or "")
 end
 
+
 function M.run(type, args)
   local command = get_test_command(type, args)
+
+  if not command then
+    return
+  end
+
   last_test.type = type
   last_test.args = args
 
