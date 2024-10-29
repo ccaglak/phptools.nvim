@@ -22,10 +22,11 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
 Command: `:Php Method`
 
 Generates undefined methods. Works with:
-- Object methods: `$router->resolve();`
+- Object methods: `$router->resolve();`, `$this->container->get(Router::class);`, `$this->get()`
 - Static methods: `Router::resolve();`
 - Instantiated methods: `(new Router)->resolve();`
-- Enum declaration: `Router::findroot()`
+- Static : `Router::findroot()`
+- Enum : `Color::RED`
 
 If the class doesn't exist, it will also generate the class.
 
@@ -37,7 +38,8 @@ Creates undefined classes, traits, interfaces, or enums. Supports:
 - Class instantiation: `new Router();`
 - Class declaration: `class Router extends|implements Route`
 - Trait usage: `use TraitName;`
-- Enum declaration: `Router::findroot()`
+- Enum declaration: `Color::RED`
+- Static declaration: `Router::findroot()`
 
 Generates the entity with proper namespace and creates a use statement for the current file.
 
@@ -83,7 +85,6 @@ PhpTools.nvim includes a powerful toggle feature that enhances your PHP developm
      - `abstract` <-> `final`
      - `class` <-> `interface` <-> `trait` <-> `enum`
      - `string` <-> `int` <-> `float` <-> `bool` <-> `array`
-     - `array_map` <-> `array_filter` <-> `array_reduce`
 
 2. **Operator Toggling**: Quickly switch between related operators.
    - Examples:

@@ -15,7 +15,7 @@ local get_visual_selection = function()
   vim.cmd('noau normal! "vy"')
   local text = vim.fn.getreg("v")
   vim.fn.setreg("v", {})
-  text = string.gsub(tostring(text), "\n", "")
+  -- text = string.gsub(tostring(text), "\n", "")
   if #text > 0 then
     return text
   else
@@ -23,26 +23,13 @@ local get_visual_selection = function()
   end
 end
 
-local function get_indentation(line)
-  local space_count = line:match("^( *)")
-  local tab_count = line:match("^(\t*)")
-  if #space_count > 0 then
-    return space_count, string.rep(" ", #space_count)
-  elseif #tab_count > 0 then
-    return tab_count, "\t"
-  else
-    return "", "    " -- Default to 4 spaces if no indentation detected
-  end
-end
-
 local function smart_indent(code)
-  local first_line = vim.split(code, "\n", true)[1]
-  local indent, indent_char = get_indentation(first_line)
+  local indent, indent_char = "    ", "\t"
   local indent_size = #indent_char == 1 and vim.bo.shiftwidth or #indent_char
 
   local buffer = {}
   for _, line in ipairs(vim.split(code, "\n", true)) do
-    local line_indent = get_indentation(line)
+    local line_indent = "    "
     local new_indent = string.rep(indent_char, math.floor(#line_indent / indent_size))
     table.insert(buffer, indent .. new_indent .. line:gsub("^%s+", ""))
   end

@@ -17,6 +17,9 @@ M.config = config
 ---@param args Config?
 M.setup = function(args)
   M.config = vim.tbl_deep_extend("force", M.config, args or {})
+
+  require("phptools.toggle").setup(M.config.toggle_options)
+
   if M.config.create == true then
     vim.api.nvim_create_autocmd("BufNewFile", {
       pattern = "*.php",
@@ -31,7 +34,6 @@ M.setup = function(args)
   if M.config.ui == true then
     require("phptools.ui")
   end
-  require("phptools.toggle").setup(M.config.toggle_options)
 end
 
 M.method = function()
@@ -61,5 +63,12 @@ end
 M.namespace = function()
   require("phptools.composer"):resolve()
 end
+
+vim.keymap.set('n', '<Leader>ta', require('phptools.tests').test.all, { desc = 'Run all tests' })
+vim.keymap.set('n', '<Leader>tf', require('phptools.tests').test.file, { desc = 'Run current file tests' })
+vim.keymap.set('n', '<Leader>tl', require('phptools.tests').test.line, { desc = 'Run test at cursor' })
+vim.keymap.set('n', '<Leader>ts', require('phptools.tests').test.filter, { desc = 'Search and run test' })
+vim.keymap.set('n', '<Leader>tp', require('phptools.tests').test.parallel, { desc = 'Run tests in parallel' })
+vim.keymap.set('n', '<Leader>tr', require('phptools.tests').test.rerun, { desc = 'Rerun last test' })
 
 return M

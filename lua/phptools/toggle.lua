@@ -1,13 +1,13 @@
 local M = {}
 
 local default_word_arrays = {
-  { "public", "protected", "private" },
-  { "self", "static" },
-  { "true", "false" },
-  { "require", "require_once", "include" },
-  { "abstract", "final" },
-  { "class", "interface", "trait" },
-  { "string", "int", "float", "bool", "array" },
+  { "public",    "protected",    "private" },
+  { "self",      "static" },
+  { "true",      "false" },
+  { "require",   "require_once", "include" },
+  { "abstract",  "final" },
+  { "class",     "interface",    "trait" },
+  { "string",    "int",          "float",       "bool", "array" },
   { "array_map", "array_filter", "array_reduce" },
 }
 
@@ -100,7 +100,6 @@ local function toggle_words(direction)
 end
 
 function M.setup(config)
-  config = config or {}
   local custom_toggles = config.custom_toggles or {}
   local word_arrays = vim.tbl_deep_extend("force", default_word_arrays, custom_toggles)
 

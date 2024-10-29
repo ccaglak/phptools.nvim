@@ -1,110 +1,145 @@
--- https://github.com/kristijanhusak/neovim-config/blob/master/nvim/after/plugin/ui.lua
+local api = vim.api
+local M = {}
 
-local ui = {
-  last_select = {},
-  last_input = {},
-}
-
-local function esc(cmd)
-  return vim.api.nvim_replace_termcodes(cmd, true, false, true)
+-- Override vim.ui with custom implementations
+M.setup = function()
+  vim.ui.select = M.select
+  vim.ui.input = M.input
 end
 
-local function get_win_width(value_length, opts)
-  return math.max(value_length + 10, (opts.prompt and opts.prompt:len() + 10 or 0))
-end
+M.select = function(items, opts, on_choice)
+  local buf = api.nvim_create_buf(false, true)
+  local width = 60
+  local height = #items + 2
 
-vim.ui.select = function(items, opts, on_choice)
-  vim.validate({
-    items = { items, "table", false },
-    on_choice = { on_choice, "function", false },
+  local win = api.nvim_open_win(buf, true, {
+    relative = 'editor',
+    width = width,
+    height = height,
+    row = math.floor((vim.o.lines - height) / 2),
+    col = math.floor((vim.o.columns - width) / 2),
+    style = 'minimal',
+    border = 'rounded'
   })
-  opts = opts or {}
-  local choices = {}
-  local format_item = opts.format_item or tostring
-  local longest_item = 0
-  for i, item in pairs(items) do
-    local choice = string.format("%d. %s ", i, format_item(item))
-    table.insert(choices, choice)
-    longest_item = math.max(longest_item, choice:len())
+
+  -- Set window options
+  api.nvim_win_set_option(win, 'cursorline', true)
+  api.nvim_win_set_option(win, 'winhl', 'Normal:Normal,FloatBorder:FloatBorder')
+
+  -- Format items based on kind
+  local lines = { opts.prompt or "Select one:" }
+  for i, item in ipairs(items) do
+    local display = item
+    if opts.format_item then
+      display = opts.format_item(item)
+    end
+    table.insert(lines, string.format("%d. %s", i, display))
   end
 
-  ui.last_select = {
-    items = items,
-    on_choice = on_choice,
+  api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  api.nvim_buf_set_option(buf, 'modifiable', false)
+  api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
+
+  -- Keymaps
+  local function close_window()
+    if api.nvim_win_is_valid(win) then
+      api.nvim_win_close(win, true)
+    end
+  end
+
+  local keymaps = {
+    ['<CR>'] = function()
+      local idx = vim.fn.line('.') - 1
+      close_window()
+      if idx > 0 and idx <= #items then
+        on_choice(items[idx], idx)
+      else
+        on_choice(nil, nil)
+      end
+    end,
+    ['q'] = function()
+      close_window()
+      on_choice(nil, nil)
+    end,
+    ['<Esc>'] = function()
+      close_window()
+      on_choice(nil, nil)
+    end,
+    ['j'] = 'j',
+    ['k'] = 'k',
   }
 
-  local eventignore = vim.opt.eventignore:get()
-  vim.opt.eventignore:append("WinLeave")
-  local bufnr, winnr = vim.lsp.util.open_floating_preview(choices, "", {
-    border = "rounded",
-    title = opts.prompt,
-    title_pos = "center",
-  })
-
-  vim.api.nvim_win_set_config(winnr, {
-    width = get_win_width(longest_item, opts),
-  })
-
-  vim.api.nvim_set_current_win(winnr)
-  if vim.fn.mode():lower() == "v" then
-    vim.api.nvim_feedkeys(esc("<Esc>"), "n", false)
+  for key, mapping in pairs(keymaps) do
+    if type(mapping) == 'function' then
+      vim.keymap.set('n', key, mapping, { buffer = buf, nowait = true })
+    else
+      vim.keymap.set('n', key, mapping, { buffer = buf })
+    end
   end
-  vim.keymap.set("n", "<CR>", ui.on_select, { buffer = bufnr })
-  vim.opt.eventignore = eventignore
+
+  -- Set cursor position
+  api.nvim_win_set_cursor(win, { 2, 0 })
 end
 
-vim.ui.input = function(opts, on_confirm)
-  vim.validate({
-    on_confirm = { on_confirm, "function", false },
-  })
-  opts = opts or {}
-  local current_val = opts.default or ""
-  local win_width = get_win_width(current_val:len(), opts)
-  local eventignore = vim.opt.eventignore:get()
-  vim.opt.eventignore:append("WinLeave")
-  local bufnr, winnr = vim.lsp.util.open_floating_preview({ current_val }, "", {
-    height = 1,
-    border = "rounded",
-    width = win_width,
-    wrap = false,
-    title = opts.prompt,
-    title_pos = "center",
+M.input = function(opts, on_confirm)
+  local buf = api.nvim_create_buf(false, true)
+  local width = math.max(40, #(opts.prompt or "") + 5)
+  local height = 1
+
+  local win = api.nvim_open_win(buf, true, {
+    relative = 'editor',
+    width = width,
+    height = height,
+    row = math.floor((vim.o.lines - height) / 2),
+    col = math.floor((vim.o.columns - width) / 2),
+    style = 'minimal',
+    border = 'rounded',
+    title = opts.prompt or "Input",
+    title_pos = 'center'
   })
 
-  ui.last_input = {
-    val = current_val,
-    on_confirm = on_confirm,
+  -- Set window options
+  api.nvim_win_set_option(win, 'winhl', 'Normal:Normal,FloatBorder:FloatBorder')
+
+  -- Set initial content
+  local default = opts.default or ""
+  api.nvim_buf_set_lines(buf, 0, -1, false, { default })
+  api.nvim_buf_set_option(buf, 'modifiable', true)
+
+  -- Handle completion if provided
+  if opts.completion then
+    vim.bo[buf].completefunc = opts.completion
+  end
+
+  -- Enter insert mode
+  vim.cmd('startinsert!')
+  if default ~= "" then
+    api.nvim_win_set_cursor(win, { 1, #default })
+  end
+
+  local function close_window()
+    if api.nvim_win_is_valid(win) then
+      vim.cmd('stopinsert')
+      api.nvim_win_close(win, true)
+    end
+  end
+
+  -- Keymaps
+  local keymaps = {
+    ['<CR>'] = function()
+      local input = api.nvim_buf_get_lines(buf, 0, 1, false)[1]
+      close_window()
+      on_confirm(input)
+    end,
+    ['<Esc>'] = function()
+      close_window()
+      on_confirm(nil)
+    end,
   }
-  vim.api.nvim_win_set_config(winnr, { width = win_width })
-  vim.api.nvim_set_current_win(winnr)
-  vim.api.nvim_buf_set_option(bufnr, "modifiable", true)
-  vim.api.nvim_win_set_option(winnr, "sidescrolloff", 0)
-  vim.keymap.set("i", "<CR>", ui.on_input, { buffer = bufnr })
-  vim.defer_fn(function()
-    vim.cmd.startinsert({ bang = true })
-    vim.opt.eventignore = eventignore
-  end, 10)
-end
 
-function ui.on_select()
-  local item = ui.last_select.items[vim.fn.line(".")]
-  vim.api.nvim_win_close(0, true)
-  if not item then
-    return ui.last_select.on_choice(nil, nil)
+  for key, mapping in pairs(keymaps) do
+    vim.keymap.set('i', key, mapping, { buffer = buf, nowait = true })
   end
-
-  return ui.last_select.on_choice(item, vim.fn.line("."))
 end
 
-function ui.on_input()
-  local input = vim.trim(vim.fn.getline("."))
-  vim.api.nvim_win_close(0, true)
-  vim.api.nvim_feedkeys(esc("<Esc>"), "i", true)
-
-  if #input > 0 then
-    return ui.last_input.on_confirm(input)
-  end
-  return ui.last_input.on_confirm(nil)
-end
-
-return ui
+return M
