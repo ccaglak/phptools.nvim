@@ -1,13 +1,13 @@
 local M = {}
 
 local default_word_arrays = {
-  { "public", "protected", "private" },
-  { "self", "static" },
-  { "true", "false" },
-  { "require", "require_once", "include" },
-  { "abstract", "final" },
-  { "class", "interface", "trait" },
-  { "string", "int", "float", "bool", "array" },
+  { "public",    "protected",    "private" },
+  { "self",      "static" },
+  { "true",      "false" },
+  { "require",   "require_once", "include" },
+  { "abstract",  "final" },
+  { "class",     "interface",    "trait" },
+  { "string",    "int",          "float",       "bool", "array" },
   { "array_map", "array_filter", "array_reduce" },
 }
 
@@ -105,27 +105,22 @@ function M.setup(config)
 
   build_lookups(word_arrays)
 
-  vim.api.nvim_create_autocmd("FileType", {
-    pattern = "*.php",
-    callback = function()
-      local mappings = {
-        ["<C-a>"] = function()
-          toggle_words(1)
-        end,
-        ["<C-x>"] = function()
-          toggle_words(-1)
-        end,
-      }
-      for key, func in pairs(mappings) do
-        vim.keymap.set("n", key, func, {
-          buffer = true,
-          noremap = true,
-          silent = true,
-          desc = "Toggle PHP words or increment/decrement",
-        })
-      end
+  local mappings = {
+    ["<C-a>"] = function()
+      toggle_words(1)
     end,
-  })
+    ["<C-x>"] = function()
+      toggle_words(-1)
+    end,
+  }
+  for key, func in pairs(mappings) do
+    vim.keymap.set("n", key, func, {
+      buffer = true,
+      noremap = true,
+      silent = true,
+      desc = "Toggle PHP words or increment/decrement",
+    })
+  end
 end
 
 return M
