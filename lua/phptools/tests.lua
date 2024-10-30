@@ -117,6 +117,7 @@ function M.run(type, args)
   last_test.args = args
 
   local output_buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_name(output_buf, "php-test-output")
   vim.api.nvim_buf_set_option(output_buf, "buftype", "nofile")
   vim.api.nvim_buf_set_option(output_buf, "swapfile", false)
   vim.api.nvim_buf_set_option(output_buf, "bufhidden", "wipe")
@@ -124,12 +125,13 @@ function M.run(type, args)
   vim.api.nvim_buf_set_keymap(output_buf, "n", "q", "<cmd>q<CR>", { noremap = true, silent = true })
   vim.api.nvim_buf_set_keymap(output_buf, "n", "<Esc>", "<cmd>q<CR>", { noremap = true, silent = true })
 
+  -- gf
   vim.api.nvim_buf_set_option(output_buf, "path", vim.fn.getcwd() .. "/**")
   vim.api.nvim_buf_set_option(output_buf, "suffixesadd", ".php")
   vim.api.nvim_buf_set_option(output_buf, "includeexpr", "substitute(v:fname, '\\\\', '/', 'g')")
-
-  -- Add custom gf mapping to open files in new buffer
   vim.api.nvim_buf_set_keymap(output_buf, "n", "gf", "<cmd>wincmd gf<CR>", { noremap = true, silent = true })
+  -- gf
+
 
   local width = math.floor(vim.o.columns * 0.7)
   local height = math.floor(vim.o.lines * 0.5)
@@ -141,6 +143,14 @@ function M.run(type, args)
     row = math.floor((vim.o.lines - height) / 2),
     style = "minimal",
     border = "rounded",
+  })
+
+  vim.api.nvim_create_autocmd("BufLeave", {
+    pattern = "php-test-output",
+    callback = function()
+      vim.api.nvim_win_close(win, true)
+    end,
+    once = true
   })
 
   vim.fn.jobstart(command, {
