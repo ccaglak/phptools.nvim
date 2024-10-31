@@ -14,6 +14,8 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
 - Create PHP entities (Class, Interface, Enum, Trait) with namespaces
 - Toggles common words <C-a> / <C-x> or fallbacks
 - Refactor with common structures and control flow statements
+- Run PHPUnit/Pest tests
+- Drupal autoloader - automatically manages PSR-4 autoloading for Drupal modules
 - Laravel compatible
 - Symfony compatible
 - Drupal compatible
@@ -22,7 +24,7 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
 
 ### PhpMethod
 
-Command: `:Php Method`
+Command: `:PhpTools Method`
 
 Generates undefined methods. Works with:
 - Object methods: `$router->resolve();`, `$this->container->get(Router::class);`, `$this->get()`
@@ -35,7 +37,7 @@ If the class doesn't exist, it will also generate the class.
 
 ### PhpClass
 
-Command: `:Php Class`
+Command: `:PhpTools Class`
 
 Creates undefined classes, traits, interfaces, or enums. Supports:
 - Class instantiation: `new Router();`
@@ -54,20 +56,20 @@ Runs Composer scripts defined in your `composer.json` file.
 
 ### PhpNamespace
 
-Command: `:Php Namespace`
+Command: `:PhpTools Namespace`
 
 Generates the appropriate namespace for the current file based on its location in the project structure.
 
 ### PhpGetSet
 
-Command: `:Php GetSet`
+Command: `:PhpTools GetSet`
 
 When the cursor is on a property declaration (e.g., `public array $routes = [];`), it generates getter, setter, or both for that property.
 
 
 ### PhpCreate
 
-Command: `:Php Create`
+Command: `:PhpTools Create`
 
 Allows you to create a new PHP entity (Class, Interface, Enum, or Trait) in the current file, complete with the correct namespace.
 
@@ -111,7 +113,7 @@ PhpTools.nvim includes a powerful toggle feature that enhances your PHP developm
 
 ### PhpRefactor
 
-Command: `:Php Refactor`
+Command: `:PhpTools Refactor`
 
 Quickly surround your PHP code with common structures and control flow statements.
 
@@ -205,6 +207,8 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
         { "<leader>ln", "<cmd>PhpTools Namespace<cr>"},
         { "<leader>lg", "<cmd>PhpTools GetSet<cr>"},
         { "<leader>lf", "<cmd>PhpTools Create<cr>"},
+        { "<leader>ld", "<cmd>PhpTools Auto<cr>"},
+        { mode="v", "<leader>lr", "<cmd>PhpTools Refactor<cr>"},
     },
     dependencies = {
          "ccaglak/namespace.nvim", -- optional - php namespace resolver
@@ -212,20 +216,17 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
     },
     config = function()
       require('phptools').setup({
+        ui = true, -- Set to true if not using a UI enhancement plugin
+        create = false -- default:false run PhpTools Create when creating a new php file
         drupal_autoloader = {
           scan_paths = { "/web/modules/contrib/" }, -- Paths to scan for modules
           root_markers = { ".git" },                -- Project root markers
           autoload_file = "/vendor/composer/autoload_psr4.php" -- Autoload file path
         }
         custom_toggles = {
-        -- { "foo", "bar", "baz" },
-        -- Add more custom toggle groups here
+        -- { "foo", "bar", "baz" }, -- Add more custom toggle groups here
         }
-        ui = false, -- Set to true if not using a UI enhancement plugin
       })
-      vim.keymap.set('v', '<leader>lr', function()
-            require("phptools.refactor").refactor()
-        end, { desc = 'PhpRefactor' })
 
       local tests = require("phptools.tests")
       vim.keymap.set("n", "<Leader>ta", tests.test.all, { desc = "Run all tests" })

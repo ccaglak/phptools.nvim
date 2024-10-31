@@ -66,4 +66,8 @@ M.namespace = function()
   require("phptools.composer"):resolve()
 end
 
+M.autoloader = function()
+  require("phptools.drupal_autoloader").update_autoload()
+end
+
 return M
