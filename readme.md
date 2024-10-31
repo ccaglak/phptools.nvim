@@ -212,6 +212,11 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
     },
     config = function()
       require('phptools').setup({
+        drupal_autoloader = {
+          scan_paths = { "/web/modules/contrib/" }, -- Paths to scan for modules
+          root_markers = { ".git" },                -- Project root markers
+          autoload_file = "/vendor/composer/autoload_psr4.php" -- Autoload file path
+        }
         custom_toggles = {
         -- { "foo", "bar", "baz" },
         -- Add more custom toggle groups here
