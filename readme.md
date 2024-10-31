@@ -140,6 +140,7 @@ echo "Hello, World!";
 if (condition) {
     echo "Hello, World!";
 }
+```
 
 ## PHP Testing Features
 
@@ -188,6 +189,7 @@ require('phptools').setup({
     autoload_file = "/vendor/composer/autoload_psr4.php" -- Autoload file path
   }
 })
+```
 
 ## Installation
 
