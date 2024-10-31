@@ -9,6 +9,7 @@ local command_map = {
   Refactor = "Refactor",
   Create = "Create",
   Composer = "Composer",
+  Autoloader = "Autoloader",
 }
 
 local function execute_command(command)

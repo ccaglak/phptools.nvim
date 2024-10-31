@@ -138,8 +138,31 @@ if (condition) {
     echo "Hello, World!";
 }
 
+## PHP Testing Features
 
+PhpTools.nvim provides comprehensive test running capabilities for PHP projects using PHPUnit or Pest.
 
+### Features
+
+- Automatically detects and uses PHPUnit or Pest test runner
+- Supports multiple test patterns:
+  - PHPUnit method annotations (`@test`)
+  - Test method prefixes (`test_*`)
+  - Pest test definitions (`test()`, `it()`)
+- Interactive test output in a floating window
+  - Press `q` or `Esc` to close
+  - Use `gf` to jump to test files
+- Smart test detection:
+  - Finds nearest test based on cursor position
+  - Supports both class-based and function-based tests
+
+### Test Runner Features
+
+- Run all tests in project
+- Run single test file
+- Filter and run specific tests
+- Parallel test execution support
+- Re-run last test
 
 ## Installation
 
@@ -157,8 +180,8 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
         { "<leader>lf", "<cmd>PhpTools Create<cr>"},
     },
     dependencies = {
-        "ccaglak/namespace.nvim", -- optional - php namespace resolver
-        "ccaglak/larago.nvim", -- optional -- laravel goto blade/components
+         "ccaglak/namespace.nvim", -- optional - php namespace resolver
+         "ccaglak/larago.nvim", -- optional -- laravel goto blade/components
     },
     config = function()
       require('phptools').setup({
@@ -171,13 +194,21 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
       vim.keymap.set('v', '<leader>lr', function()
             require("phptools.refactor").refactor()
         end, { desc = 'PhpRefactor' })
+
+      local tests = require("phptools.tests")
+      vim.keymap.set("n", "<Leader>ta", tests.test.all, { desc = "Run all tests" })
+      vim.keymap.set("n", "<Leader>tf", tests.test.file, { desc = "Run current file tests" })
+      vim.keymap.set("n", "<Leader>tl", tests.test.line, { desc = "Run test at cursor" })
+      vim.keymap.set("n", "<Leader>ts", tests.test.filter, { desc = "Search and run test" })
+      vim.keymap.set("n", "<Leader>tp", tests.test.parallel, { desc = "Run tests in parallel" })
+      vim.keymap.set("n", "<Leader>tr", tests.test.rerun, { desc = "Rerun last test" })
     end
 }
 ```
 
 
 ## Requires
-
+- ripgrep
 - pleanery.nvim
 - nvim-treesitter (`:TSInstall php json`)
 - recommended stevearc/dressing.nvim but optional (read config)
@@ -187,7 +218,6 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 - custom templates
 - append to codeactions
 - custom template per directory base :? in Controller directory, controller template is generated
-- run tests (run all, filter, file, line)
 
 ## Known bugs
 
