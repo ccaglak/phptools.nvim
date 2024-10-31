@@ -98,20 +98,28 @@ M.input = function(opts, on_confirm)
     title_pos = "center",
   })
 
-  -- Set window options
   api.nvim_win_set_option(win, "winhl", "Normal:Normal,FloatBorder:FloatBorder")
 
-  -- Set initial content
   local default = opts.default or ""
   api.nvim_buf_set_lines(buf, 0, -1, false, { default })
   api.nvim_buf_set_option(buf, "modifiable", true)
 
-  -- Handle completion if provided
+  -- Enhanced completion setup
   if opts.completion then
-    vim.bo[buf].completefunc = opts.completion
+    vim.bo[buf].omnifunc = opts.completion
+    -- Enable completion menu settings
+    vim.opt_local.completeopt = { "menu", "menuone", "noselect" }
+    -- Auto trigger completion
+    vim.keymap.set("i", "<Tab>", function()
+      if vim.fn.pumvisible() == 1 then
+        return "<C-n>"
+      else
+        vim.fn.feedkeys(vim.fn.nr2char(vim.fn.getchar()), "n")
+        return vim.fn.complete(vim.fn.col("."), opts.completion_items or {})
+      end
+    end, { buffer = buf, expr = true })
   end
 
-  -- Enter insert mode
   vim.cmd("startinsert!")
   if default ~= "" then
     api.nvim_win_set_cursor(win, { 1, #default })
@@ -124,7 +132,6 @@ M.input = function(opts, on_confirm)
     end
   end
 
-  -- Keymaps
   local keymaps = {
     ["<CR>"] = function()
       local input = api.nvim_buf_get_lines(buf, 0, 1, false)[1]

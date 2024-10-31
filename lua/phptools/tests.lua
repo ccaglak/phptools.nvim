@@ -174,7 +174,7 @@ M.test = {
   end,
   filter = function()
     get_test_names(function(test_names)
-      require("phptools.ui").select(test_names, {
+      vim.ui.select(test_names, {
         prompt = "Select test to run:",
         format_item = function(item)
           return item
