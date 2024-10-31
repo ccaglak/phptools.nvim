@@ -155,7 +155,7 @@ PhpTools.nvim provides comprehensive test running capabilities for PHP projects 
   - Pest test definitions (`test()`, `it()`)
 - Interactive test output in a floating window
   - Press `q` or `Esc` to close
-  - Use `gf` to jump to test files
+  - Use `gf` to jump to failed test files
 - Smart test detection:
   - Finds nearest test based on cursor position
   - Supports both class-based and function-based tests
