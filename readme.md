@@ -14,6 +14,9 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
 - Create PHP entities (Class, Interface, Enum, Trait) with namespaces
 - Toggles common words <C-a> / <C-x> or fallbacks
 - Refactor with common structures and control flow statements
+- Laravel compatible
+- Symfony compatible
+- Drupal compatible
 
 ## Detailed Usage
 
@@ -163,6 +166,28 @@ PhpTools.nvim provides comprehensive test running capabilities for PHP projects 
 - Filter and run specific tests
 - Parallel test execution support
 - Re-run last test
+
+## Drupal Autoloader
+
+PhpTools.nvim includes a powerful Drupal autoloader that automatically manages PSR-4 autoloading for Drupal modules. This feature helps keep your autoload configurations up-to-date as you develop Drupal modules.
+
+#### Features
+
+- Automatically scans contributed modules directory
+- Updates PSR-4 autoload configurations
+- Watches for changes in composer.json and autoload files
+- Maintains proper namespacing for Drupal modules
+
+#### Configuration
+
+```lua
+require('phptools').setup({
+  drupal_autoloader = {
+    scan_paths = { "/web/modules/contrib/" }, -- Paths to scan for modules
+    root_markers = { ".git" },                -- Project root markers
+    autoload_file = "/vendor/composer/autoload_psr4.php" -- Autoload file path
+  }
+})
 
 ## Installation
 
