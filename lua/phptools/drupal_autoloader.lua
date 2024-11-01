@@ -30,14 +30,16 @@ local function scan_modules(modules_path)
 
   while handle do
     local name, type = uv.fs_scandir_next(handle)
-    if not name then break end
+    if not name then
+      break
+    end
 
     if type == "directory" then
       local info_file = normalize_path(string.format("%s/%s/%s.info.yml", modules_path, name, name))
       if uv.fs_stat(info_file) then
         table.insert(modules, {
           name = name,
-          path = modules_path .. sep .. name
+          path = modules_path .. sep .. name,
         })
       end
     end
@@ -52,7 +54,9 @@ local function get_module_namespace(module_path)
 
   while handle do
     local name, type = uv.fs_scandir_next(handle)
-    if not name then break end
+    if not name then
+      break
+    end
 
     if type == "file" and name:match("%.php$") then
       local file_path = src_path .. sep .. name
@@ -66,14 +70,14 @@ local function get_module_namespace(module_path)
   end
 
   local composer_file = module_path .. sep .. "composer.json"
-  composer_file = composer_file:gsub('//', '/')
+  composer_file = composer_file:gsub("//", "/")
   local stat = uv.fs_stat(composer_file)
 
   if stat then
     local content = vim.fn.join(vim.fn.readfile(composer_file), "\n")
     local composer_data = vim.json.decode(content)
     if composer_data then
-      return composer_data.name:gsub('/', '\\\\') .. '\\\\'
+      return composer_data.name:gsub("/", "\\\\") .. "\\\\"
     end
   end
 
@@ -84,7 +88,7 @@ local function build_autoload_map(modules)
   local map = {}
   for _, module in ipairs(modules) do
     local namespace = get_module_namespace(module.path)
-    module.path = module.path:gsub(get_project_root(), '')
+    module.path = module.path:gsub(get_project_root(), "")
     if namespace then
       map[namespace] = { module.path .. sep .. "src" }
     end
@@ -96,7 +100,7 @@ local function write_autoload_file(autoload_file, new_map)
   local content = vim.fn.join(vim.fn.readfile(autoload_file), "\n")
 
   for namespace, paths in pairs(new_map) do
-    local formatted_namespace = namespace:gsub('\\', '\\\\') .. '\\\\'
+    local formatted_namespace = namespace:gsub("\\", "\\\\") .. "\\\\"
     if not content:find(vim.pesc(formatted_namespace)) then
       local insert_pos = content:find("%);%s*$")
       if insert_pos then
@@ -112,8 +116,6 @@ local function write_autoload_file(autoload_file, new_map)
     end
   end
 end
-
-
 
 local function get_state_file()
   local state_dir = vim.fn.stdpath("state")
@@ -163,7 +165,7 @@ local function is_files_modified()
   if autoload_stat.mtime.sec > last_autoload_modified or composer_stat.mtime.sec > last_composer_modified then
     write_state({
       last_autoload_modified = autoload_stat.mtime.sec,
-      last_composer_modified = composer_stat.mtime.sec
+      last_composer_modified = composer_stat.mtime.sec,
     })
     is_modified = true
   end

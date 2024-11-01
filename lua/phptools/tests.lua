@@ -1,7 +1,7 @@
-local ui = require('phptools').config.ui.enable
+local ui = require("phptools").config.ui.enable
 
 if ui then
-  vim.ui.select = require('phptools.ui').select
+  vim.ui.select = require("phptools.ui").select
 end
 
 local M = {}
@@ -59,8 +59,8 @@ local function get_test_names(callback)
           local test_names = {}
           for _, line in ipairs(data) do
             local test_name = line:match("function%s+([%w_]+)")
-                or line:match("test%(['\"]([^'\"]+)['\"]")
-                or line:match("it%(['\"]([^'\"]+)['\"]")
+              or line:match("test%(['\"]([^'\"]+)['\"]")
+              or line:match("it%(['\"]([^'\"]+)['\"]")
 
             if test_name then
               table.insert(test_names, test_name)
@@ -89,9 +89,9 @@ local function get_nearest_test()
     end
 
     local test_name = line:match(test_patterns.test_prefix)
-        or line:match(test_patterns.test_function)
-        or line:match(test_patterns.test_call)
-        or line:match(test_patterns.it_block)
+      or line:match(test_patterns.test_function)
+      or line:match(test_patterns.test_call)
+      or line:match(test_patterns.it_block)
 
     if test_name then
       return test_name
@@ -138,7 +138,6 @@ function M.run(type, args)
   vim.api.nvim_buf_set_keymap(output_buf, "n", "gf", "<cmd>wincmd gf<CR>", { noremap = true, silent = true })
   -- gf
 
-
   local width = math.floor(vim.o.columns * 0.7)
   local height = math.floor(vim.o.lines * 0.5)
   local win = vim.api.nvim_open_win(output_buf, true, {
@@ -156,7 +155,7 @@ function M.run(type, args)
     callback = function()
       vim.api.nvim_win_close(win, true)
     end,
-    once = true
+    once = true,
   })
 
   vim.fn.jobstart(command, {

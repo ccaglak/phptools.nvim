@@ -6,7 +6,7 @@ require("phptools.funcs")
 local config = {
   ui = {
     enable = true,
-    fzf = false
+    fzf = false,
   },
   create = false,
   toggle_options = {},

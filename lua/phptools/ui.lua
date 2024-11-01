@@ -1,11 +1,10 @@
 local api = vim.api
 local fn = vim.fn
 
-local ui = require('phptools').config.ui
-
+local ui = require("phptools").config.ui
 
 local M = {
-  fzf = false
+  fzf = false,
 }
 
 M.setup = function()
@@ -39,9 +38,9 @@ function M.fzf_select(items, opts, on_choice)
   fn.clearmatches(window)
 
   -- Set buffer options
-  api.nvim_buf_set_option(buffer, 'buftype', 'nofile')
-  api.nvim_buf_set_option(buffer, 'swapfile', false)
-  api.nvim_buf_set_option(buffer, 'bufhidden', 'wipe')
+  api.nvim_buf_set_option(buffer, "buftype", "nofile")
+  api.nvim_buf_set_option(buffer, "swapfile", false)
+  api.nvim_buf_set_option(buffer, "bufhidden", "wipe")
   vim.bo[buffer].filetype = "fzf"
 
   local formatted_items = vim.tbl_map(function(item)
@@ -49,7 +48,7 @@ function M.fzf_select(items, opts, on_choice)
   end, items)
 
   local fzf_opts = table.concat({
-    opts.prompt and string.format("--prompt=%s\\>\\ ", fn.shellescape(opts.prompt)) or ""
+    opts.prompt and string.format("--prompt=%s\\>\\ ", fn.shellescape(opts.prompt)) or "",
   }, " ")
 
   local result = fn.tempname()

@@ -49,7 +49,6 @@ local function parse(str)
   return "namespace " .. psr:sub(1, -2) .. ";"
 end
 
-
 function N.get_prefix_and_src_psr4()
   local root = vim.fs.root(0, { ".git" }) or vim.uv.cwd()
   local autoload_file = root .. normalize_path("/vendor/composer/autoload_psr4.php")
@@ -88,12 +87,8 @@ function N.resolve_from_autoload_psr4()
   for _, entry in ipairs(psr4_map or {}) do
     if current_dir:find(entry.src) ~= nil then
       return "namespace "
-          .. current_dir
-          :gsub(entry.src, entry.prefix)
-          :gsub("\\\\", "\\")
-          :gsub("\\$", "")
-          :gsub(sep, "")
-          .. ";"
+        .. current_dir:gsub(entry.src, entry.prefix):gsub("\\\\", "\\"):gsub("\\$", ""):gsub(sep, "")
+        .. ";"
     end
   end
 end

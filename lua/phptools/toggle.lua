@@ -1,13 +1,13 @@
 local M = {}
 
 local default_word_arrays = {
-  { "public",   "protected",    "private" },
-  { "self",     "static" },
-  { "true",     "false" },
-  { "require",  "require_once", "include" },
+  { "public", "protected", "private" },
+  { "self", "static" },
+  { "true", "false" },
+  { "require", "require_once", "include" },
   { "abstract", "final" },
-  { "class",    "interface",    "trait" },
-  { "string",   "int",          "float",  "bool", "array" },
+  { "class", "interface", "trait" },
+  { "string", "int", "float", "bool", "array" },
 }
 
 local word_lookup = {}
