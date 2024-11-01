@@ -9,11 +9,7 @@ local M = {
 }
 
 M.setup = function()
-  if ui.fzf then
-    vim.ui.select = M.fzf_select
-  else
-    vim.ui.select = M.select
-  end
+  vim.ui.select = M.select
   vim.ui.input = M.input
 end
 

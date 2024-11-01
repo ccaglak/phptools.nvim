@@ -5,7 +5,7 @@ require("phptools.funcs")
 ---@field opt string
 local config = {
   ui = {
-    enable = false,
+    enable = true,
     fzf = false
   },
   create = false,
@@ -37,7 +37,7 @@ M.setup = function(args)
     })
   end
   if M.config.ui.enable == true then
-    require("phptools.ui").setup(M.config.ui.fzf)
+    require("phptools.ui").setup()
   end
 end
 
