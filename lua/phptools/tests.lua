@@ -124,17 +124,17 @@ function M.run(type, args)
 
   local output_buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_name(output_buf, "php-test-output")
-  vim.api.nvim_buf_set_option(output_buf, "buftype", "nofile")
-  vim.api.nvim_buf_set_option(output_buf, "swapfile", false)
-  vim.api.nvim_buf_set_option(output_buf, "bufhidden", "wipe")
+  vim.api.nvim_set_option_value("buftype", "nofile", { buf = output_buf })
+  vim.api.nvim_set_option_value("swapfile", false, { buf = output_buf })
+  vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = output_buf })
 
   vim.api.nvim_buf_set_keymap(output_buf, "n", "q", "<cmd>q<CR>", { noremap = true, silent = true })
   vim.api.nvim_buf_set_keymap(output_buf, "n", "<Esc>", "<cmd>q<CR>", { noremap = true, silent = true })
 
   -- gf
-  vim.api.nvim_buf_set_option(output_buf, "path", vim.fn.getcwd() .. "/**")
-  vim.api.nvim_buf_set_option(output_buf, "suffixesadd", ".php")
-  vim.api.nvim_buf_set_option(output_buf, "includeexpr", "substitute(v:fname, '\\\\', '/', 'g')")
+  vim.api.nvim_set_option_value("path", vim.fn.getcwd() .. "/**", { buf = output_buf })
+  vim.api.nvim_set_option_value("suffixesadd", ".php", { buf = output_buf })
+  vim.api.nvim_set_option_value("includeexpr", "substitute(v:fname, '\\\\', '/', 'g')", { buf = output_buf })
   vim.api.nvim_buf_set_keymap(output_buf, "n", "gf", "<cmd>wincmd gf<CR>", { noremap = true, silent = true })
   -- gf
 

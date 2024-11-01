@@ -38,9 +38,9 @@ function M.fzf_select(items, opts, on_choice)
   fn.clearmatches(window)
 
   -- Set buffer options
-  api.nvim_buf_set_option(buffer, "buftype", "nofile")
-  api.nvim_buf_set_option(buffer, "swapfile", false)
-  api.nvim_buf_set_option(buffer, "bufhidden", "wipe")
+  api.nvim_set_option_value("buftype", "nofile", { buf = buffer })
+  api.nvim_set_option_value("swapfile", false, { buf = buffer })
+  api.nvim_set_option_value("bufhidden", "wipe", { buf = buffer })
   vim.bo[buffer].filetype = "fzf"
 
   local formatted_items = vim.tbl_map(function(item)
@@ -95,8 +95,8 @@ M.norm_select = function(items, opts, on_choice)
   })
 
   -- Set window options
-  api.nvim_win_set_option(win, "cursorline", true)
-  api.nvim_win_set_option(win, "winhl", "Normal:Normal,FloatBorder:FloatBorder")
+  api.nvim_set_option_value("cursorline", true, { win = win })
+  api.nvim_set_option_value("winhl", "Normal:Normal,FloatBorder:FloatBorder", { win = win })
 
   -- Format items based on kind
   local lines = { opts.prompt or "Select one:" }
@@ -109,8 +109,8 @@ M.norm_select = function(items, opts, on_choice)
   end
 
   api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-  api.nvim_buf_set_option(buf, "modifiable", false)
-  api.nvim_buf_set_option(buf, "bufhidden", "wipe")
+  api.nvim_set_option_value("modifiable", false, { buf = buf })
+  api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
 
   -- Keymaps
   local function close_window()
@@ -169,13 +169,11 @@ M.input = function(opts, on_confirm)
     title = opts.prompt or "Input",
     title_pos = "center",
   })
-
-  api.nvim_win_set_option(win, "winhl", "Normal:Normal,FloatBorder:FloatBorder")
+  api.nvim_set_option_value("winhl", "Normal:Normal,FloatBorder:FloatBorder", { win = win })
 
   local default = opts.default or ""
   api.nvim_buf_set_lines(buf, 0, -1, false, { default })
-  api.nvim_buf_set_option(buf, "modifiable", true)
-
+  api.nvim_set_option_value("modifiable", false, { buf = buf })
   -- Enhanced completion setup
   if opts.completion then
     vim.bo[buf].omnifunc = opts.completion

@@ -257,13 +257,13 @@ function N:scripts()
     vim.notify("Executing: " .. command, vim.log.levels.INFO)
 
     local output_buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_option(output_buf, "buftype", "nofile")
-    vim.api.nvim_buf_set_option(output_buf, "swapfile", false)
-    vim.api.nvim_buf_set_option(output_buf, "bufhidden", "wipe")
+    vim.api.nvim_set_option_value("buftype", "nofile", { buf = output_buf })
+    vim.api.nvim_set_option_value("swapfile", false, { buf = output_buf })
+    vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = output_buf })
     vim.api.nvim_buf_set_keymap(output_buf, "n", "q", "<cmd>close<CR>", { noremap = true, silent = true })
     local width = math.floor(vim.o.columns * 0.6)
     local height = math.floor(vim.o.lines * 0.8)
-    local win = vim.api.nvim_open_win(output_buf, true, {
+    vim.api.nvim_open_win(output_buf, true, {
       relative = "editor",
       width = width,
       height = height,
