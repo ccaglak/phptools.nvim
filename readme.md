@@ -220,12 +220,12 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
           enable = true, -- default:true
           fzf = true -- default:false
         }, -- Set to true if not using a UI enhancement plugin
-        create = false -- default:false run PhpTools Create when creating a new php file
+        create = false, -- default:false run PhpTools Create when creating a new php file
         drupal_autoloader = {
           scan_paths = { "/web/modules/contrib/" }, -- Paths to scan for modules
           root_markers = { ".git" },                -- Project root markers
           autoload_file = "/vendor/composer/autoload_psr4.php" -- Autoload file path
-        }
+        },
         custom_toggles = {
         -- { "foo", "bar", "baz" }, -- Add more custom toggle groups here
         }
