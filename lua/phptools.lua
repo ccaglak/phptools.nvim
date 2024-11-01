@@ -4,7 +4,10 @@ require("phptools.funcs")
 ---@class Config
 ---@field opt string
 local config = {
-  ui = true,
+  ui = {
+    enable = false,
+    fzf = false
+  },
   create = false,
   toggle_options = {},
   drupal_autoloader = {},
@@ -33,8 +36,8 @@ M.setup = function(args)
       group = vim.api.nvim_create_augroup("PhpToolsCreateFile", { clear = true }),
     })
   end
-  if M.config.ui == true then
-    require("phptools.ui").setup()
+  if M.config.ui.enable == true then
+    require("phptools.ui").setup(M.config.ui.fzf)
   end
 end
 

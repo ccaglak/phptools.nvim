@@ -216,7 +216,10 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
     },
     config = function()
       require('phptools').setup({
-        ui = true, -- Set to true if not using a UI enhancement plugin
+         ui = {
+          enable = true, -- default:true
+          fzf = true -- default:false
+        }, -- Set to true if not using a UI enhancement plugin
         create = false -- default:false run PhpTools Create when creating a new php file
         drupal_autoloader = {
           scan_paths = { "/web/modules/contrib/" }, -- Paths to scan for modules

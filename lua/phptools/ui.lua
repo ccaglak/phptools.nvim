@@ -1,13 +1,90 @@
 local api = vim.api
-local M = {}
+local fn = vim.fn
 
--- Override vim.ui with custom implementations
+local ui = require('phptools').config.ui
+
+
+local M = {
+  fzf = false
+}
+
 M.setup = function()
-  vim.ui.select = M.select
+  if ui.fzf then
+    vim.ui.select = M.fzf_select
+  else
+    vim.ui.select = M.select
+  end
   vim.ui.input = M.input
 end
 
-M.select = function(items, opts, on_choice)
+M.select = function()
+  if ui.fzf then
+    return M.fzf_select
+  end
+  return M.norm_select
+end
+
+function M.fzf_select(items, opts, on_choice)
+  local height, width = vim.o.lines, vim.o.columns
+  local row = math.floor(height * 0.25)
+  local col = math.floor(width * 0.25)
+  local win_height = math.ceil(height * 0.5)
+  local win_width = math.ceil(width * 0.5)
+
+  local buffer = api.nvim_create_buf(false, true)
+  local window = api.nvim_open_win(buffer, true, {
+    relative = "editor",
+    row = row,
+    col = col,
+    height = win_height,
+    width = win_width,
+  })
+
+  fn.clearmatches(window)
+
+  -- Set buffer options
+  api.nvim_buf_set_option(buffer, 'buftype', 'nofile')
+  api.nvim_buf_set_option(buffer, 'swapfile', false)
+  api.nvim_buf_set_option(buffer, 'bufhidden', 'wipe')
+  vim.bo[buffer].filetype = "fzf"
+
+  local formatted_items = vim.tbl_map(function(item)
+    return opts.format_item and opts.format_item(item) or tostring(item)
+  end, items)
+
+  local fzf_opts = table.concat({
+    opts.prompt and string.format("--prompt=%s\\>\\ ", fn.shellescape(opts.prompt)) or ""
+  }, " ")
+
+  local result = fn.tempname()
+  local job = fn.termopen("fzf 2>/dev/null 1>" .. result, {
+    env = {
+      FZF_DEFAULT_COMMAND = 'printf "%s\n" ' .. table.concat(vim.tbl_map(fn.shellescape, formatted_items), " "),
+      FZF_DEFAULT_OPTS = fzf_opts,
+    },
+    on_exit = function(_, code)
+      api.nvim_buf_delete(buffer, {})
+      if code == 0 then
+        for line in io.lines(result) do
+          for i, item in ipairs(formatted_items) do
+            if item == line then
+              on_choice(items[i], i)
+              break
+            end
+          end
+        end
+      end
+      fn.delete(result)
+    end,
+  })
+
+  if not job or job == 0 or job == -1 then
+    vim.notify("Could not start fzf job", vim.log.levels.ERROR)
+    return
+  end
+end
+
+M.norm_select = function(items, opts, on_choice)
   local buf = api.nvim_create_buf(false, true)
   local width = 60
   local height = #items + 2
