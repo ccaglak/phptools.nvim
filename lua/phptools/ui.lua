@@ -173,7 +173,7 @@ M.input = function(opts, on_confirm)
 
   local default = opts.default or ""
   api.nvim_buf_set_lines(buf, 0, -1, false, { default })
-  api.nvim_set_option_value("modifiable", false, { buf = buf })
+  api.nvim_set_option_value("modifiable", true, { buf = buf })
   -- Enhanced completion setup
   if opts.completion then
     vim.bo[buf].omnifunc = opts.completion
