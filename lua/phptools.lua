@@ -73,4 +73,6 @@ M.autoloader = function()
   require("phptools.drupal_autoloader").update_autoload()
 end
 
+require("phptools.laravel_ide_helper").setup()
+
 return M
