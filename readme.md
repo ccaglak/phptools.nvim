@@ -66,8 +66,6 @@ Command: `:Php Create`
 
 Allows you to create a new PHP entity (Class, Interface, Enum, or Trait) in the current file, complete with the correct namespace.
 
-To use these commands effectively, map them to convenient keybindings as shown in the installation section. This will allow quick access to PhpTools functionality while coding.
-
 ### PhpToggle
 
 PhpTools.nvim includes a powerful toggle feature that enhances your PHP development workflow. This feature allows you to quickly switch between related keywords, operators, and values with simple key presses.
