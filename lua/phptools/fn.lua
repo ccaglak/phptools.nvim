@@ -96,23 +96,25 @@ end
 local function transform_if_match(text)
   -- Convert if/elseif to match
   if text:match("if%s*%(.-%)%s*{.-}%s*elseif%s*%(.-%)%s*{.-}") then
-    return text:gsub("if%s*%((.-)%s*==%s*(.-)%)%s*{%s*(.-)%s*}%s*elseif%s*%((.-)%s*==%s*(.-)%)%s*{%s*(.-)%s*}",
+    return text:gsub(
+      "if%s*%((.-)%s*==%s*(.-)%)%s*{%s*return%s*(.-)%s*;%s*}%s*elseif%s*%((.-)%s*==%s*(.-)%)%s*{%s*return%s*(.-)%s*;%s*}",
       function(var1, val1, body1, var2, val2, body2)
-        return string.format("match (%s) {\n    %s => %s,\n    %s => %s,\n};",
-          var1, val1, body1, val2, body2)
+        return string.format("match (%s) {\n    %s => %s,\n    %s => %s\n};",
+          var1, val1, body1:gsub('"', "'"), val2, body2:gsub('"', "'"))
       end)
   end
 
   -- Convert match to if/elseif
   if text:match("match%s*%(.-%)%s*{.-}") then
-    return text:gsub("match%s*%((.-)%)%s*{%s*(.-)%s*=>%s*(.-),%s*(.-)%s*=>%s*(.-),%s*}",
+    return text:gsub("match%s*%((.-)%)%s*{%s*(.-)%s*=>%s*(.-),%s*(.-)%s*=>%s*(.-)%s*}",
       function(var, val1, body1, val2, body2)
-        return string.format("if (%s == %s) {\n    %s\n} elseif (%s == %s) {\n    %s\n}",
+        return string.format("if (%s == %s) {\n    return %s;\n} elseif (%s == %s) {\n    return %s;\n}",
           var, val1, body1, var, val2, body2)
       end)
   end
   return text
 end
+
 
 function M.toggle_if_match()
   local node = get_node_at_cursor()
