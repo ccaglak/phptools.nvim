@@ -3,9 +3,7 @@ local fn = vim.fn
 
 local ui = require("phptools").config.ui
 
-local M = {
-  fzf = false,
-}
+local M = {}
 
 M.setup = function()
   vim.ui.select = M.select
