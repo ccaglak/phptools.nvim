@@ -180,17 +180,14 @@ PhpTools.nvim includes a powerful Drupal autoloader that automatically manages P
 - Watches for changes in composer.json and autoload files
 - Maintains proper namespacing for Drupal modules
 
-#### Configuration
+### Toggle
+### Function Style Toggling
+- Switch between arrow functions and traditional PHP functions
+- Seamlessly convert between fn() => expression and function() { return expression; }
+## Conditional Statement Transformations
+- Toggle between if-else statements and ternary operators
+- Convert between traditional if-else blocks and match expressions
 
-```lua
-require('phptools').setup({
-  drupal_autoloader = {
-    scan_paths = { "/web/modules/contrib/" }, -- Paths to scan for modules
-    root_markers = { ".git" },                -- Project root markers
-    autoload_file = "/vendor/composer/autoload_psr4.php" -- Autoload file path
-  }
-})
-```
 
 ## Installation
 
@@ -238,6 +235,11 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
       vim.keymap.set("n", "<Leader>tp", tests.test.parallel, { desc = "Run tests in parallel" })
       vim.keymap.set("n", "<Leader>tr", tests.test.rerun, { desc = "Rerun last test" })
       vim.keymap.set("n", "<Leader>ti", tests.test.selected, { desc = "Run selected test file" })
+
+      vim.keymap.set('n', '<leader>llf', require('phptools.fn').toggle_function, { desc = 'Toggle PHP function style' })
+      vim.keymap.set('n', '<leader>lli', require('phptools.fn').toggle_if_ternary, { desc = "Toggle if/ternary" })
+      vim.keymap.set('n', '<leader>llm', require('phptools.fn').toggle_if_match, { desc = "Toggle if/match" })
+
     end
 }
 ```
