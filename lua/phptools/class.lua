@@ -15,6 +15,7 @@ Class.templates = {
   scoped_call_expression = "class",
   use_declaration = "trait",
   class_constant_access_expression = "enum",
+  simple_parameter = "class",
 }
 
 function Class:new()
@@ -48,7 +49,7 @@ function Class:get_class_name()
         text = tree.get_text(self.parent.node:child()),
         range = { self.parent.node:child():range() },
       }
-    or tree.children(self.parent.node, "name")
+      or tree.children(self.parent.node, "name") or tree.children(self.parent.node, "named_type")
 end
 
 function Class:find_or_create_class()
@@ -148,7 +149,7 @@ function Class:get_parent()
     "use_declaration",
     "class_constant_access_expression",
     "scoped_call_expression",
-    -- "simple_parameter",
+    "simple_parameter",
   }) do
     local parent = tree.parent(type)
     if parent and parent.type == type then
