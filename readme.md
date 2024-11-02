@@ -24,7 +24,7 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
 
 Command: `:PhpTools Method`
 
-Generates undefined methods. Works with:
+Generates undefined methods under cursor. Works with:
 - Object methods: `$router->resolve();`, `$this->container->get(Router::class);`, `$this->get()`
 - Static methods: `Router::resolve();`
 - Instantiated methods: `(new Router)->resolve();`
@@ -37,7 +37,7 @@ If the class doesn't exist, it will also generate the class.
 
 Command: `:PhpTools Class`
 
-Creates undefined classes, traits, interfaces, or enums. Supports:
+Creates undefined classes, traits, interfaces, or enums under cursor. Supports:
 - Class instantiation: `new Router();`
 - Class declaration: `class Router extends|implements Route`
 - Trait usage: `use TraitName;`
