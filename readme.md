@@ -169,6 +169,12 @@ PhpTools.nvim provides comprehensive test running capabilities for PHP projects 
 - Parallel test execution support
 - Re-run last test
 
+
+
+https://github.com/user-attachments/assets/61828e80-f165-4cc0-bc90-414d5401eacc
+
+
+
 ## Drupal Autoloader
 
 PhpTools.nvim includes a powerful Drupal autoloader that automatically manages PSR-4 autoloading for Drupal modules. This feature helps keep your autoload configurations up-to-date as you develop Drupal modules.
