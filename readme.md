@@ -1,4 +1,4 @@
-## PhpTools.nvim
+## PhpTools.nvim v2.0.0
 
 Elevate your PHP development in Neovim with PhpTools - bringing you one step closer to PHPStorm-like functionality ;).
 
