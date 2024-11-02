@@ -188,6 +188,8 @@ PhpTools.nvim includes a powerful Drupal autoloader that automatically manages P
 - Toggle between if-else statements and ternary operators
 - Convert between traditional if-else blocks and match expressions
 
+https://github.com/user-attachments/assets/3d923edf-bf31-4c9d-aeca-b73557380bc1
+
 
 ## Installation
 
