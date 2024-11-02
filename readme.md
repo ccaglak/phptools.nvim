@@ -45,6 +45,7 @@ Creates undefined classes, traits, interfaces, or enums. Supports:
 - Trait usage: `use TraitName;`
 - Enum declaration: `Color::RED`
 - Static declaration: `Router::findroot()`
+- Simple Parameter: `function foo(Router $router) {}`
 
 Generates the entity with proper namespace and creates a use statement for the current file.
 
@@ -238,6 +239,7 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
       vim.keymap.set("n", "<Leader>ts", tests.test.filter, { desc = "Search and run test" })
       vim.keymap.set("n", "<Leader>tp", tests.test.parallel, { desc = "Run tests in parallel" })
       vim.keymap.set("n", "<Leader>tr", tests.test.rerun, { desc = "Rerun last test" })
+      vim.keymap.set("n", "<Leader>ti", tests.test.selected, { desc = "Run selected test file" })
     end
 }
 ```

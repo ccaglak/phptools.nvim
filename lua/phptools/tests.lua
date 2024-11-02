@@ -59,8 +59,8 @@ local function get_test_names(callback)
           local test_names = {}
           for _, line in ipairs(data) do
             local test_name = line:match("function%s+([%w_]+)")
-              or line:match("test%(['\"]([^'\"]+)['\"]")
-              or line:match("it%(['\"]([^'\"]+)['\"]")
+                or line:match("test%(['\"]([^'\"]+)['\"]")
+                or line:match("it%(['\"]([^'\"]+)['\"]")
 
             if test_name then
               table.insert(test_names, test_name)
@@ -89,9 +89,9 @@ local function get_nearest_test()
     end
 
     local test_name = line:match(test_patterns.test_prefix)
-      or line:match(test_patterns.test_function)
-      or line:match(test_patterns.test_call)
-      or line:match(test_patterns.it_block)
+        or line:match(test_patterns.test_function)
+        or line:match(test_patterns.test_call)
+        or line:match(test_patterns.it_block)
 
     if test_name then
       return test_name
@@ -191,6 +191,20 @@ M.test = {
       end)
     end)
   end,
+
+  selected = function()
+    vim.ui.select(vim.fn.glob("tests/**/*Test.php", false, true), {
+      prompt = "Select test file to run:",
+      format_item = function(item)
+        return vim.fn.fnamemodify(item, ":.")
+      end,
+    }, function(choice)
+      if choice then
+        M.run("file", choice)
+      end
+    end)
+  end,
+
   file = function()
     local file = vim.fn.expand("%:p")
     M.run("file", file)
