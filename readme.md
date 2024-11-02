@@ -16,9 +16,7 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
 - Refactor with common structures and control flow statements
 - Run PHPUnit/Pest tests
 - Drupal autoloader - automatically manages PSR-4 autoloading for Drupal modules
-- Laravel compatible
-- Symfony compatible
-- Drupal compatible
+- Laravel, Symfony, Drupal compatible
 
 ## Detailed Usage
 
