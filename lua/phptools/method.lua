@@ -20,7 +20,7 @@ local Method = {
       "    }",
     },
     class_constant_access_expression = {
-      "    case %s; // TODO:",
+      "    case %s; // TODO: ",
     },
   },
 }
