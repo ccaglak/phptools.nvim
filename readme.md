@@ -188,6 +188,7 @@ PhpTools.nvim includes a powerful Drupal autoloader that automatically manages P
 ### Function Style Toggling
 - Switch between arrow functions and traditional PHP functions
 - Seamlessly convert between fn() => expression and function() { return expression; }
+- Toggle quotes
 ## Conditional Statement Transformations
 - Toggle between if-else statements and ternary operators
 - Convert between traditional if-else blocks and match expressions
@@ -245,6 +246,8 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
       vim.keymap.set('n', '<leader>llf', require('phptools.fn').toggle_function, { desc = 'Toggle PHP function style' })
       vim.keymap.set('n', '<leader>lli', require('phptools.fn').toggle_if_ternary, { desc = "Toggle if/ternary" })
       vim.keymap.set('n', '<leader>llm', require('phptools.fn').toggle_if_match, { desc = "Toggle if/match" })
+
+      vim.keymap.set('n', '<leader>llm', require('phptools.fn').toggle_quotes, { desc = "Toggle qoutes" })
 
     end
 }

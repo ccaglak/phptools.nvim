@@ -49,7 +49,8 @@ function Class:get_class_name()
         text = tree.get_text(self.parent.node:child()),
         range = { self.parent.node:child():range() },
       }
-      or tree.children(self.parent.node, "name") or tree.children(self.parent.node, "named_type")
+    or tree.children(self.parent.node, "name")
+    or tree.children(self.parent.node, "named_type")
 end
 
 function Class:find_or_create_class()
@@ -80,6 +81,11 @@ function Class:create_new_class()
   if not pre_src then
     return
   end
+
+  -- local rt = vim.fn.expand("%:h")
+  -- if rt == "." then
+  --   rt = "/"
+  -- end
 
   vim.ui.input({
     prompt = "Directory for " .. self.class_name.text .. ".php",
