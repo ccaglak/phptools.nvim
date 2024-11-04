@@ -29,10 +29,11 @@ end
 local function transform_function(text, is_arrow)
   if is_arrow then
     return text:gsub("fn%s*(%b())%s*=>%s*(.+)", function(params, body)
-      return string.format("function%s {\n    return %s;\n};", params, body:gsub(";*$", ""))
+      local fixed_body = body:gsub("^new%s+([%w_]+)%)?;?$", "new %1()"):gsub(";*$", "")
+      return string.format("function%s {\n    return %s;\n});", params, fixed_body)
     end)
   end
-  return text:gsub("function%s*(%b())%s*{%s*return%s*(.+);%s*}%s*;", "fn%1 => %2;")
+  return text:gsub("function%s*(%b())%s*{%s*return%s*(.+);%s*}%s*;?", "fn%1 => %2;")
 end
 
 local function transform_if_ternary(text)
