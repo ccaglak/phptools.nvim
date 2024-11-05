@@ -101,7 +101,7 @@ end
 local function write_autoload_file(autoload_file, new_map)
   if not vim.loop.fs_stat(autoload_file) then
     notify(
-      string.format("Autoload file not found: %s\nPlease run composer install first.", autoload_file),
+      string.format("Autoload file not found: %s\nPlease run 'composer dumpautoload' first.", autoload_file),
       vim.log.levels.WARN
     )
     return
