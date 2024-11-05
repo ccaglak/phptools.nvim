@@ -7,6 +7,8 @@ local cache = {
   module_namespaces = {},
 }
 
+local notify = require('phptools.notify').notify
+
 local sep = vim.uv.os_uname().sysname == "Windows_NT" and "\\" or "/"
 
 local function normalize_path(path)
@@ -97,6 +99,14 @@ local function build_autoload_map(modules)
 end
 
 local function write_autoload_file(autoload_file, new_map)
+  if not vim.loop.fs_stat(autoload_file) then
+    notify(
+      string.format("Autoload file not found: %s\nPlease run composer install first.", autoload_file),
+      vim.log.levels.WARN
+    )
+    return
+  end
+
   local content = vim.fn.join(vim.fn.readfile(autoload_file), "\n")
 
   for namespace, paths in pairs(new_map) do
