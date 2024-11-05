@@ -1,5 +1,7 @@
 local M = {}
 
+-- does this have any value?
+
 local notify = require("phptools.notify").notify
 
 local function is_laravel()
@@ -133,8 +135,6 @@ function M.generate_facades()
   execute_artisan("ide-helper:generate")
 end
 
--- Package installer
--- Replace the install function with this version
 function M.install()
   if not is_laravel() then
     return
@@ -151,7 +151,8 @@ function M.install()
     if obj.code == 0 then
       vim.schedule(function()
         notify("IDE Helper installed")
-        M.generate_all()
+        M.generate_facades()
+        M.generate_models()
       end)
     end
   end)
