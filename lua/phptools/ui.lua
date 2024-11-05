@@ -6,7 +6,7 @@ local ui = require("phptools").config.ui
 local M = {}
 
 M.setup = function()
-  vim.ui.select = M.select
+  vim.ui.select = M.select()
   vim.ui.input = M.input
 end
 

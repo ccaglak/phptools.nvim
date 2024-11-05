@@ -1,9 +1,4 @@
 local composer = require("phptools.composer")
-local ui = require("phptools").config.ui.enable
-
-if ui then
-  vim.ui.select = require("phptools.ui").select()
-end
 
 local Create = {}
 function Create:new()

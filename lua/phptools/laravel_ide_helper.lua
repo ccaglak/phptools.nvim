@@ -1,4 +1,3 @@
----@diagnostic disable: redundant-parameter
 local M = {}
 
 local function is_laravel()
@@ -51,7 +50,7 @@ function M.select_model()
   end
 
   local models = {}
-  local handle = io.popen("ls app/Models/*.php")
+  local handle = io.popen("ls app/Models/*.php") or error("Failed")
   for model in handle:lines() do
     table.insert(models, vim.fn.fnamemodify(model, ":t:r"))
   end
