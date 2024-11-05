@@ -36,6 +36,7 @@ M.setup = function(args)
       group = vim.api.nvim_create_augroup("PhpToolsCreateFile", { clear = true }),
     })
   end
+
   if M.config.ui.enable == true then
     require("phptools.ui").setup()
   end
@@ -69,10 +70,8 @@ M.namespace = function()
   require("phptools.composer"):resolve()
 end
 
-M.autoloader = function()
+M.drupalautoloader = function()
   require("phptools.drupal_autoloader").update_autoload()
 end
-
-require("phptools.laravel_ide_helper").setup()
 
 return M

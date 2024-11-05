@@ -71,12 +71,12 @@ local function with_progress(message, fn)
   local notify_id = notify(message .. "...", vim.log.levels.INFO, {
     title = "Laravel IDE Helper",
     timeout = false,
-    replace = true
+    replace = true,
   })
 
   fn(function()
     notify(message .. " completed", vim.log.levels.INFO, {
-      replace = notify_id
+      replace = notify_id,
     })
   end)
 end
@@ -155,27 +155,6 @@ function M.install()
       end)
     end
   end)
-end
-
--- Setup with keymaps and autocommands
-function M.setup()
-  local maps = {
-    { "<Leader>lhg", M.generate_all,     "Generate all helpers" },
-    { "<Leader>lhm", M.generate_models,  "Generate model helpers" },
-    { "<Leader>lhf", M.generate_facades, "Generate facade helpers" },
-    { "<Leader>lht", M.generate_meta,    "Generate meta" },
-    { "<Leader>lhs", M.select_model,     "select model" },
-    { "<Leader>lhi", M.install,          "Install" },
-  }
-
-  for _, map in ipairs(maps) do
-    vim.keymap.set("n", map[1], map[2], { desc = map[3] })
-  end
-
-  vim.api.nvim_create_autocmd("BufWritePost", {
-    pattern = "app/Models/*.php",
-    callback = M.generate_model,
-  })
 end
 
 return M

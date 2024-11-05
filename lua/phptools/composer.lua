@@ -88,8 +88,8 @@ function N.resolve_from_autoload_psr4()
   for _, entry in ipairs(psr4_map or {}) do
     if current_dir:find(entry.src) ~= nil then
       return "namespace "
-          .. current_dir:gsub(entry.src, entry.prefix):gsub("\\\\", "\\"):gsub("\\$", ""):gsub(sep, "")
-          .. ";"
+        .. current_dir:gsub(entry.src, entry.prefix):gsub("\\\\", "\\"):gsub("\\$", ""):gsub(sep, "")
+        .. ";"
     end
   end
 end

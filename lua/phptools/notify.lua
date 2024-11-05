@@ -23,13 +23,15 @@ local function make_popup_opts(width, height, offset, opts)
     row = vim.o.lines - offset,
     col = vim.o.columns,
     style = opts.style or defaults.style,
-    border = opts.border or defaults.border
+    border = opts.border or defaults.border,
   }
 end
 
 local M = {}
 M.notify = function(msg, level, opts)
-  if not msg then return end
+  if not msg then
+    return
+  end
   level = level or vim.log.levels.INFO
   opts = opts or {}
 

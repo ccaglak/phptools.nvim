@@ -53,8 +53,8 @@ local function get_test_names(callback)
           local test_names = {}
           for _, line in ipairs(data) do
             local test_name = line:match("function%s+([%w_]+)")
-                or line:match("test%(['\"]([^'\"]+)['\"]")
-                or line:match("it%(['\"]([^'\"]+)['\"]")
+              or line:match("test%(['\"]([^'\"]+)['\"]")
+              or line:match("it%(['\"]([^'\"]+)['\"]")
 
             if test_name then
               table.insert(test_names, test_name)
@@ -83,9 +83,9 @@ local function get_nearest_test()
     end
 
     local test_name = line:match(test_patterns.test_prefix)
-        or line:match(test_patterns.test_function)
-        or line:match(test_patterns.test_call)
-        or line:match(test_patterns.it_block)
+      or line:match(test_patterns.test_function)
+      or line:match(test_patterns.test_call)
+      or line:match(test_patterns.it_block)
 
     if test_name then
       return test_name

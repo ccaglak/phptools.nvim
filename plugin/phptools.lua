@@ -9,7 +9,7 @@ local command_map = {
   Refactor = "Refactor",
   Create = "Create",
   Composer = "Composer",
-  Autoloader = "Autoloader",
+  DrupalAutoloader = "DrupalAutoloader",
 }
 
 local function execute_command(command)

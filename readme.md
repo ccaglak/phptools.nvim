@@ -16,6 +16,7 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
 - Refactor with common structures and control flow statements
 - Run PHPUnit/Pest tests
 - Drupal autoloader - automatically manages PSR-4 autoloading for Drupal modules
+- Laravel IDE Helper - automatically generates ide helpers
 - Laravel, Symfony, Drupal compatible
 
 ## Detailed Usage
@@ -154,7 +155,7 @@ PhpTools.nvim provides comprehensive test running capabilities for PHP projects 
   - Pest test definitions (`test()`, `it()`)
 - Interactive test output in a floating window
   - Press `q` or `Esc` to close
-  - Use `gf` to jump to failed test files
+  - Use `gf` to jump to failed test file
 - Smart test detection:
   - Finds nearest test based on cursor position
   - Supports both class-based and function-based tests
@@ -196,6 +197,24 @@ PhpTools.nvim includes a powerful Drupal autoloader that automatically manages P
 https://github.com/user-attachments/assets/3d923edf-bf31-4c9d-aeca-b73557380bc1
 
 
+### Laravel IDE Helper Integration
+
+PhpTools.nvim includes built-in support for Laravel IDE Helper.
+
+### Features
+
+- Generate helpers for facades, models, and meta files
+- Interactive model selection for targeted generation
+- One-command installation and setup
+- Progress notifications for long-running operations
+
+### Automatic Features
+
+- Auto-generates model helpers when saving files in `app/Models/`
+- Shows progress notifications during helper generation
+- Validates Laravel project structure before operations
+
+
 ## Installation
 
 Using [lazy.nvim](https://github.com/folke/lazy.nvim):
@@ -210,12 +229,12 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
         { "<leader>ln", "<cmd>PhpTools Namespace<cr>"},
         { "<leader>lg", "<cmd>PhpTools GetSet<cr>"},
         { "<leader>lf", "<cmd>PhpTools Create<cr>"},
-        { "<leader>ld", "<cmd>PhpTools Auto<cr>"},
+        { "<leader>ld", "<cmd>PhpTools DrupalAutoLoader<cr>"},
         { mode="v", "<leader>lr", "<cmd>PhpTools Refactor<cr>"},
     },
     dependencies = {
-         -- "ccaglak/namespace.nvim", -- optional - php namespace resolver
-        -- "ccaglak/larago.nvim", -- optional -- laravel goto blade/components
+         "ccaglak/namespace.nvim", -- optional - php namespace resolver
+        "ccaglak/larago.nvim", -- optional -- laravel goto blade/components
         -- "ccaglak/snippets.nvim", -- optional -- native snippet expander
     },
     config = function()
@@ -235,6 +254,15 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
         }
       })
 
+      local ide_helper = require("phptools.ide_helper")
+
+      vim.keymap.set("n", "<leader>lha", ide_helper.generate_all, { desc = "Generate all IDE helpers" })
+      vim.keymap.set("n", "<leader>lhm", ide_helper.generate_models, { desc = "Generate model helpers" })
+      vim.keymap.set("n", "<leader>lhs", ide_helper.select_model, { desc = "Select to generate model helper" })
+      vim.keymap.set("n", "<leader>lhf", ide_helper.generate_facades, { desc = "Generate facade helpers" })
+      vim.keymap.set("n", "<leader>lht", ide_helper.generate_meta, { desc = "Generate meta helper" })
+      vim.keymap.set("n", "<leader>lhi", ide_helper.install, { desc = "Install Laravel IDE Helper" })
+
       local tests = require("phptools.tests")
       vim.keymap.set("n", "<Leader>ta", tests.test.all, { desc = "Run all tests" })
       vim.keymap.set("n", "<Leader>tf", tests.test.file, { desc = "Run current file tests" })
@@ -247,7 +275,6 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
       vim.keymap.set('n', '<leader>llf', require('phptools.fn').toggle_function, { desc = 'Toggle PHP function style' })
       vim.keymap.set('n', '<leader>lli', require('phptools.fn').toggle_if_ternary, { desc = "Toggle if/ternary" })
       vim.keymap.set('n', '<leader>llm', require('phptools.fn').toggle_if_match, { desc = "Toggle if/match" })
-
       vim.keymap.set('n', '<leader>llm', require('phptools.fn').toggle_quotes, { desc = "Toggle qoutes" })
 
     end
@@ -257,24 +284,18 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ## Requires
 - ripgrep
-- pleanery.nvim
 - nvim-treesitter (`:TSInstall php json`)
-- recommended stevearc/dressing.nvim but optional (read config)
 
 ## Features to be added
-
-- custom templates
-- append to codeactions
-- custom template per directory base :? in Controller directory, controller template is generated
+  -- running out of ideas for now
+  -- your welcome to contribute or suggest features
 
 ## Known bugs
-
-- Let me know if you have any edge cases
-
 ## Check Out
 
-- Laravel Goto Blade/Components [larago.nvim](https://github.com/ccaglak/larago.nvim).
 - PHP Namespace Resolver [namespace.nvim](https://github.com/ccaglak/namespace.nvim).
+- Snippets.nvim [snippets.nvim](https://github.com/ccaglak/snippets.nvim).
+- Laravel Goto Blade/Components [larago.nvim](https://github.com/ccaglak/larago.nvim).
 
 ## Inspired
 
