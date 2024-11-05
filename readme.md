@@ -254,28 +254,31 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
         }
       })
 
-      local ide_helper = require("phptools.ide_helper")
+      local map = vim.keymap.set
 
-      vim.keymap.set("n", "<leader>lha", ide_helper.generate_all, { desc = "Generate all IDE helpers" })
-      vim.keymap.set("n", "<leader>lhm", ide_helper.generate_models, { desc = "Generate model helpers" })
-      vim.keymap.set("n", "<leader>lhs", ide_helper.select_model, { desc = "Select to generate model helper" })
-      vim.keymap.set("n", "<leader>lhf", ide_helper.generate_facades, { desc = "Generate facade helpers" })
-      vim.keymap.set("n", "<leader>lht", ide_helper.generate_meta, { desc = "Generate meta helper" })
-      vim.keymap.set("n", "<leader>lhi", ide_helper.install, { desc = "Install Laravel IDE Helper" })
+      local ide_helper = require('phptools.ide_helper')
+      -- Laravel IDE Helper keymaps
+      map('n', '<leader>lha', ide_helper.generate_all, { desc = 'Generate all IDE helpers' })
+      map('n', '<leader>lhm', ide_helper.generate_models, { desc = 'Generate model helpers' })
+      map('n', '<leader>lhf', ide_helper.generate_facades, { desc = 'Generate facade helpers' })
+      map('n', '<leader>lht', ide_helper.generate_meta, { desc = 'Generate meta helper' })
+      map('n', '<leader>lhi', ide_helper.install, { desc = 'Install IDE Helper package' })
+
 
       local tests = require("phptools.tests")
-      vim.keymap.set("n", "<Leader>ta", tests.test.all, { desc = "Run all tests" })
-      vim.keymap.set("n", "<Leader>tf", tests.test.file, { desc = "Run current file tests" })
-      vim.keymap.set("n", "<Leader>tl", tests.test.line, { desc = "Run test at cursor" })
-      vim.keymap.set("n", "<Leader>ts", tests.test.filter, { desc = "Search and run test" })
-      vim.keymap.set("n", "<Leader>tp", tests.test.parallel, { desc = "Run tests in parallel" })
-      vim.keymap.set("n", "<Leader>tr", tests.test.rerun, { desc = "Rerun last test" })
-      vim.keymap.set("n", "<Leader>ti", tests.test.selected, { desc = "Run selected test file" })
+      map("n", "<Leader>ta", tests.test.all, { desc = "Run all tests" })
+      map("n", "<Leader>tf", tests.test.file, { desc = "Run current file tests" })
+      map("n", "<Leader>tl", tests.test.line, { desc = "Run test at cursor" })
+      map("n", "<Leader>ts", tests.test.filter, { desc = "Search and run test" })
+      map("n", "<Leader>tp", tests.test.parallel, { desc = "Run tests in parallel" })
+      map("n", "<Leader>tr", tests.test.rerun, { desc = "Rerun last test" })
+      map("n", "<Leader>ti", tests.test.selected, { desc = "Run selected test file" })
 
-      vim.keymap.set('n', '<leader>llf', require('phptools.fn').toggle_function, { desc = 'Toggle PHP function style' })
-      vim.keymap.set('n', '<leader>lli', require('phptools.fn').toggle_if_ternary, { desc = "Toggle if/ternary" })
-      vim.keymap.set('n', '<leader>llm', require('phptools.fn').toggle_if_match, { desc = "Toggle if/match" })
-      vim.keymap.set('n', '<leader>llm', require('phptools.fn').toggle_quotes, { desc = "Toggle qoutes" })
+      local fn = require('phptools.fn')
+      map('n', '<leader>llf', fn.toggle_function, { desc = 'Toggle PHP function style' })
+      map('n', '<leader>lli', fn.toggle_if_ternary, { desc = "Toggle if/ternary" })
+      map('n', '<leader>llm', fn.toggle_if_match, { desc = "Toggle if/match" })
+      map('n', '<leader>llm', fn.toggle_quotes, { desc = "Toggle qoutes" })
 
     end
 }

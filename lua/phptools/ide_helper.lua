@@ -1,73 +1,49 @@
 local M = {}
-
--- does this have any value?
-
 local notify = require("phptools.notify").notify
+
+local config = {
+  models_path = "app/Models",
+  artisan_path = "artisan",
+  notify_timeout = 5000,
+  composer_dev = true
+}
+
+function M.setup(opts)
+  config = vim.tbl_deep_extend("force", config, opts or {})
+end
 
 local function is_laravel()
   return vim.fn.filereadable("artisan") == 1
 end
 
-local function execute_artisan(command, callback)
-  vim.system({
-    "php",
-    "artisan",
-    unpack(vim.split(command, " ")),
-  }, {
+local function execute_command(cmd, callback, silent)
+  vim.system(cmd, {
     text = true,
     cwd = vim.fn.getcwd(),
   }, function(obj)
-    if obj.code == 0 then
-      vim.schedule(function()
-        notify(obj.stdout, vim.log.levels.INFO)
-        if callback then
-          callback(true)
+    vim.schedule(function()
+      if obj.code == 0 then
+        if not silent then
+          notify(obj.stdout, vim.log.levels.INFO)
         end
-      end)
-    else
-      vim.schedule(function()
+        callback(true, obj.stdout)
+      else
         notify(obj.stderr, vim.log.levels.ERROR)
-        if callback then
-          callback(false)
-        end
-      end)
-    end
+        callback(false, obj.stderr)
+      end
+    end)
   end)
 end
 
-function M.generate_model()
-  if not is_laravel() then
-    return
-  end
-  local model = vim.fn.expand("%:t:r")
-  execute_artisan("ide-helper:models -N " .. model, function(success)
-    if success then
-      notify("Generated helper for " .. model)
-    end
-  end)
+local function execute_artisan(command, callback)
+  local cmd = {
+    "php",
+    "artisan",
+    unpack(vim.split(command, " ")),
+  }
+  execute_command(cmd, callback or function() end)
 end
 
--- Model selector and generator
-function M.select_model()
-  if not is_laravel() then
-    return
-  end
-
-  local models = {}
-  local handle = io.popen("ls app/Models/*.php") or error("Failed")
-  for model in handle:lines() do
-    table.insert(models, vim.fn.fnamemodify(model, ":t:r"))
-  end
-  handle:close()
-
-  vim.ui.select(models, {
-    prompt = "Select model:",
-  }, function(choice)
-    if choice then
-      execute_artisan("ide-helper:models -N " .. choice)
-    end
-  end)
-end
 
 local function with_progress(message, fn)
   local notify_id = notify(message .. "...", vim.log.levels.INFO, {
@@ -84,9 +60,7 @@ local function with_progress(message, fn)
 end
 
 function M.generate_all()
-  if not is_laravel() then
-    return
-  end
+  if not is_laravel() then return end
 
   local commands = {
     "ide-helper:models -N",
@@ -113,49 +87,36 @@ function M.generate_all()
   run_next(1)
 end
 
--- Individual generators
 function M.generate_models()
-  if not is_laravel() then
-    return
-  end
+  if not is_laravel() then return end
   execute_artisan("ide-helper:models -N")
 end
 
 function M.generate_meta()
-  if not is_laravel() then
-    return
-  end
+  if not is_laravel() then return end
   execute_artisan("ide-helper:meta")
 end
 
 function M.generate_facades()
-  if not is_laravel() then
-    return
-  end
+  if not is_laravel() then return end
   execute_artisan("ide-helper:generate")
 end
 
 function M.install()
-  if not is_laravel() then
-    return
-  end
+  if not is_laravel() then return end
   notify("Installing IDE Helper...")
-  vim.system({
+  execute_command({
     "composer",
     "require",
-    "--dev",
+    config.composer_dev and "--dev" or nil,
     "barryvdh/laravel-ide-helper",
-  }, {
-    text = true,
-  }, function(obj)
-    if obj.code == 0 then
-      vim.schedule(function()
-        notify("IDE Helper installed")
-        M.generate_facades()
-        M.generate_models()
-      end)
+  }, function(success)
+    if success then
+      notify("Installing IDE Helper completed", vim.log.levels.INFO)
+      M.generate_facades()
+      M.generate_models()
     end
-  end)
+  end, true)
 end
 
 return M
