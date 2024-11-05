@@ -1,6 +1,7 @@
 local N = {}
 
 local api = vim.api
+local notify = require("phptools.notify").notify
 
 local cache = {
   composer_json = nil,
@@ -87,8 +88,8 @@ function N.resolve_from_autoload_psr4()
   for _, entry in ipairs(psr4_map or {}) do
     if current_dir:find(entry.src) ~= nil then
       return "namespace "
-        .. current_dir:gsub(entry.src, entry.prefix):gsub("\\\\", "\\"):gsub("\\$", ""):gsub(sep, "")
-        .. ";"
+          .. current_dir:gsub(entry.src, entry.prefix):gsub("\\\\", "\\"):gsub("\\$", ""):gsub(sep, "")
+          .. ";"
     end
   end
 end
@@ -226,7 +227,7 @@ function N:resolve()
     if not ok then
       api.nvim_buf_set_lines(0, insertion, insertion, false, { ns })
     else
-      vim.notify("Namespace already exists", "", "warn")
+      notify("Namespace already exists", "", "warn")
     end
   end
 end
@@ -234,7 +235,7 @@ end
 function N:scripts()
   local composer = N.read_composer_file()
   if composer == nil or not composer.scripts then
-    vim.notify("No Composer scripts found", vim.log.levels.ERROR)
+    notify("No Composer scripts found", vim.log.levels.ERROR)
     return
   end
 
@@ -254,7 +255,7 @@ function N:scripts()
     end
 
     local command = "composer " .. selection.name
-    vim.notify("Executing: " .. command, vim.log.levels.INFO)
+    notify("Executing: " .. command, vim.log.levels.INFO)
 
     local output_buf = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_set_option_value("buftype", "nofile", { buf = output_buf })

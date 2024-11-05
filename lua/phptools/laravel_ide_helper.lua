@@ -1,5 +1,7 @@
 local M = {}
 
+local notify = require("phptools.notify").notify
+
 local function is_laravel()
   return vim.fn.filereadable("artisan") == 1
 end
@@ -15,14 +17,14 @@ local function execute_artisan(command, callback)
   }, function(obj)
     if obj.code == 0 then
       vim.schedule(function()
-        vim.notify(obj.stdout, vim.log.levels.INFO)
+        notify(obj.stdout, vim.log.levels.INFO)
         if callback then
           callback(true)
         end
       end)
     else
       vim.schedule(function()
-        vim.notify(obj.stderr, vim.log.levels.ERROR)
+        notify(obj.stderr, vim.log.levels.ERROR)
         if callback then
           callback(false)
         end
@@ -38,7 +40,7 @@ function M.generate_model()
   local model = vim.fn.expand("%:t:r")
   execute_artisan("ide-helper:models -N " .. model, function(success)
     if success then
-      vim.notify("Generated helper for " .. model)
+      notify("Generated helper for " .. model)
     end
   end)
 end
@@ -65,10 +67,22 @@ function M.select_model()
   end)
 end
 
--- Generate all helpers
+local function with_progress(message, fn)
+  local notify_id = notify(message .. "...", vim.log.levels.INFO, {
+    title = "Laravel IDE Helper",
+    timeout = false,
+    replace = true
+  })
+
+  fn(function()
+    notify(message .. " completed", vim.log.levels.INFO, {
+      replace = notify_id
+    })
+  end)
+end
+
 function M.generate_all()
   if not is_laravel() then
-    print("woe")
     return
   end
 
@@ -80,13 +94,17 @@ function M.generate_all()
 
   local function run_next(index)
     if index > #commands then
-      vim.notify("All helpers generated")
+      notify("All helpers generated", vim.log.levels.INFO)
       return
     end
-    execute_artisan(commands[index], function(success)
-      if success then
-        run_next(index + 1)
-      end
+
+    with_progress("Generating helper " .. index .. "/" .. #commands, function(done)
+      execute_artisan(commands[index], function(success)
+        if success then
+          done()
+          run_next(index + 1)
+        end
+      end)
     end)
   end
 
@@ -121,7 +139,7 @@ function M.install()
   if not is_laravel() then
     return
   end
-  print("Installing IDE Helper...")
+  notify("Installing IDE Helper...")
   vim.system({
     "composer",
     "require",
@@ -131,9 +149,8 @@ function M.install()
     text = true,
   }, function(obj)
     if obj.code == 0 then
-      -- Use vim.schedule to safely call vim.notify
       vim.schedule(function()
-        vim.notify("IDE Helper installed")
+        notify("IDE Helper installed")
         M.generate_all()
       end)
     end
@@ -143,12 +160,12 @@ end
 -- Setup with keymaps and autocommands
 function M.setup()
   local maps = {
-    { "<Leader>lhg", M.generate_all, "Generate all helpers" },
-    { "<Leader>lhm", M.generate_models, "Generate model helpers" },
+    { "<Leader>lhg", M.generate_all,     "Generate all helpers" },
+    { "<Leader>lhm", M.generate_models,  "Generate model helpers" },
     { "<Leader>lhf", M.generate_facades, "Generate facade helpers" },
-    { "<Leader>lht", M.generate_meta, "Generate meta" },
-    { "<Leader>lhs", M.select_model, "select model" },
-    { "<Leader>lhi", M.install, "Install" },
+    { "<Leader>lht", M.generate_meta,    "Generate meta" },
+    { "<Leader>lhs", M.select_model,     "select model" },
+    { "<Leader>lhi", M.install,          "Install" },
   }
 
   for _, map in ipairs(maps) do

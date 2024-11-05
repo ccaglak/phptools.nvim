@@ -1,55 +1,55 @@
 local api = vim.api
 
-local displayed = {}
-local function make_popup(width, height, offset)
+local hls = {
+  [vim.log.levels.ERROR] = "NotifyError",
+  [vim.log.levels.INFO] = "NotifyInfo",
+  [vim.log.levels.WARN] = "NotifyWarn",
+}
+
+local defaults = {
+  timeout = 3000,
+  border = "none",
+  position = "SE",
+  style = "minimal",
+  width_ratio = 3,
+}
+
+local function make_popup_opts(width, height, offset, opts)
   return {
     relative = "editor",
-    anchor = "SE",
+    anchor = opts.position or defaults.position,
     width = width,
     height = height,
     row = vim.o.lines - offset,
     col = vim.o.columns,
+    style = opts.style or defaults.style,
+    border = opts.border or defaults.border
   }
 end
 
-local function close_notification(win, buf)
-  api.nvim_win_close(win, true)
-  api.nvim_buf_delete(buf, { force = true })
-  displayed[buf] = nil
-end
-
 local M = {}
-
-M.notify = function(msg)
-  if not msg then
-    return
-  end
+M.notify = function(msg, level, opts)
+  if not msg then return end
+  level = level or vim.log.levels.INFO
+  opts = opts or {}
 
   local lines = vim.split(msg, "\n")
-  local max_width = math.floor(vim.o.columns / 3.5)
-  local height = #lines
-
   local buf = api.nvim_create_buf(false, true)
   api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 
-  local offset = 1
-  for _, popup in pairs(displayed) do
-    offset = offset + popup.height + 1
-  end
+  local win = api.nvim_open_win(buf, false, make_popup_opts(#msg, #lines, 1, opts))
 
-  local win = api.nvim_open_win(buf, false, make_popup(max_width, height, offset))
-
-  displayed[buf] = { win = win, height = height }
+  local ns = api.nvim_create_namespace("phptools_notify")
+  api.nvim_buf_add_highlight(buf, ns, hls[level] or "NotifyInfo", 0, 0, -1)
+  api.nvim_set_option_value("winhl", opts.winhl or "Normal:Normal", { win = win })
 
   vim.defer_fn(function()
     if api.nvim_win_is_valid(win) then
-      vim.defer_fn(function()
-        close_notification(win, buf)
-      end, 500)
+      api.nvim_win_close(win, true)
+      api.nvim_buf_delete(buf, { force = true })
     end
-  end, 3000)
+  end, opts.timeout or defaults.timeout)
 
   return buf
 end
-
 return M

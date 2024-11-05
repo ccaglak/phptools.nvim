@@ -1,5 +1,5 @@
 local M = {}
-
+local notify = require("phptools.notify").notify
 -- Patterns
 local test_patterns = {
   annotation = ".*@test.*",
@@ -53,8 +53,8 @@ local function get_test_names(callback)
           local test_names = {}
           for _, line in ipairs(data) do
             local test_name = line:match("function%s+([%w_]+)")
-              or line:match("test%(['\"]([^'\"]+)['\"]")
-              or line:match("it%(['\"]([^'\"]+)['\"]")
+                or line:match("test%(['\"]([^'\"]+)['\"]")
+                or line:match("it%(['\"]([^'\"]+)['\"]")
 
             if test_name then
               table.insert(test_names, test_name)
@@ -83,9 +83,9 @@ local function get_nearest_test()
     end
 
     local test_name = line:match(test_patterns.test_prefix)
-      or line:match(test_patterns.test_function)
-      or line:match(test_patterns.test_call)
-      or line:match(test_patterns.it_block)
+        or line:match(test_patterns.test_function)
+        or line:match(test_patterns.test_call)
+        or line:match(test_patterns.it_block)
 
     if test_name then
       return test_name
@@ -98,7 +98,7 @@ local function get_test_command(type, args)
   local base_cmd = detect_test_framework()
   if args and type == "file" then
     if not string.match(args, "Test%.php$") then
-      vim.notify("Not a test file. File must end with Test.php", vim.log.levels.WARN)
+      notify("Not a test file. File must end with Test.php", vim.log.levels.WARN)
       return nil
     end
   end
@@ -208,7 +208,7 @@ M.test = {
     if test_name then
       M.run("filter", test_name)
     else
-      vim.notify("No test found near cursor", vim.log.levels.WARN)
+      notify("No test found near cursor", vim.log.levels.WARN)
     end
   end,
   parallel = function()
@@ -218,7 +218,7 @@ M.test = {
     if last_test.type then
       M.run(last_test.type, last_test.args)
     else
-      vim.notify("No previous test to rerun", vim.log.levels.INFO)
+      notify("No previous test to rerun", vim.log.levels.INFO)
     end
   end,
 }

@@ -2,6 +2,7 @@ local api = vim.api
 local fn = vim.fn
 
 local ui = require("phptools").config.ui
+local notify = require("phptools.notify").notify
 
 local M = {}
 
@@ -72,7 +73,7 @@ function M.fzf_select(items, opts, on_choice)
   })
 
   if not job or job == 0 or job == -1 then
-    vim.notify("Could not start fzf job", vim.log.levels.ERROR)
+    notify("Could not start fzf job", vim.log.levels.ERROR)
     return
   end
 end
