@@ -3,7 +3,7 @@ local composer = require("phptools.composer")
 local ui = require("phptools").config.ui.enable
 
 if ui then
-  vim.ui.input = require("phptools.ui").input
+  vim.ui.input = require("phptools.ui").input()
 end
 
 local Class = {}
