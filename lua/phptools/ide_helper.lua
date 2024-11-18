@@ -5,7 +5,7 @@ local config = {
   models_path = "app/Models",
   artisan_path = "artisan",
   notify_timeout = 5000,
-  composer_dev = true
+  composer_dev = true,
 }
 
 function M.setup(opts)
@@ -44,7 +44,6 @@ local function execute_artisan(command, callback)
   execute_command(cmd, callback or function() end)
 end
 
-
 local function with_progress(message, fn)
   local notify_id = notify(message .. "...", vim.log.levels.INFO, {
     title = "Laravel IDE Helper",
@@ -60,7 +59,9 @@ local function with_progress(message, fn)
 end
 
 function M.generate_all()
-  if not is_laravel() then return end
+  if not is_laravel() then
+    return
+  end
 
   local commands = {
     "ide-helper:models -N",
@@ -88,22 +89,30 @@ function M.generate_all()
 end
 
 function M.generate_models()
-  if not is_laravel() then return end
+  if not is_laravel() then
+    return
+  end
   execute_artisan("ide-helper:models -N")
 end
 
 function M.generate_meta()
-  if not is_laravel() then return end
+  if not is_laravel() then
+    return
+  end
   execute_artisan("ide-helper:meta")
 end
 
 function M.generate_facades()
-  if not is_laravel() then return end
+  if not is_laravel() then
+    return
+  end
   execute_artisan("ide-helper:generate")
 end
 
 function M.install()
-  if not is_laravel() then return end
+  if not is_laravel() then
+    return
+  end
   notify("Installing IDE Helper...")
   execute_command({
     "composer",

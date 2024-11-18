@@ -7,7 +7,7 @@ local cache = {
   module_namespaces = {},
 }
 
-local notify = require('phptools.notify').notify
+local notify = require("phptools.notify").notify
 
 local sep = vim.uv.os_uname().sysname == "Windows_NT" and "\\" or "/"
 

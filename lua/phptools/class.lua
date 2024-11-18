@@ -106,7 +106,6 @@ function Class:create_new_class()
 end
 
 function Class:finalize_buffer(bufnr)
-  vim.api.nvim_set_option_value("filetype", "php", { buf = bufnr })
   vim.api.nvim_set_current_buf(bufnr)
   vim.api.nvim_buf_call(0, function()
     vim.cmd("silent! wall! | edit")

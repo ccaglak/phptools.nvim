@@ -290,8 +290,8 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 - nvim-treesitter (`:TSInstall php json`)
 
 ## Features to be added
-  -- running out of ideas for now
-  -- your welcome to contribute or suggest features
+  - running out of ideas for now
+  - your welcome to contribute or suggest features
 
 ## Known bugs
 ## Check Out
