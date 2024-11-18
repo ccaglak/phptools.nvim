@@ -185,18 +185,6 @@ PhpTools.nvim includes a powerful Drupal autoloader that automatically manages P
 - Watches for changes in composer.json and autoload files
 - Maintains proper namespacing for Drupal modules
 
-### Toggle
-### Function Style Toggling
-- Switch between arrow functions and traditional PHP functions
-- Seamlessly convert between fn() => expression and function() { return expression; }
-- Toggle quotes
-## Conditional Statement Transformations
-- Toggle between if-else statements and ternary operators
-- Convert between traditional if-else blocks and match expressions
-
-https://github.com/user-attachments/assets/3d923edf-bf31-4c9d-aeca-b73557380bc1
-
-
 ### Laravel IDE Helper Integration
 
 PhpTools.nvim includes built-in support for Laravel IDE Helper.
@@ -241,7 +229,7 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
       require('phptools').setup({
          ui = {
           enable = true, -- default:true; false only if you have a UI enhancement plugin
-          fzf = false -- default:false; requires fzf used only in tests module otherwise there might long list  of tests
+          fzf = false -- default:false; tests requires fzf used only in tests module otherwise there might long list  of tests
         },
         create = false, -- default:false autorun PhpTools Create when creating a new php file
         drupal_autoloader = { -- delete if you dont use it
@@ -249,14 +237,14 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
           root_markers = { ".git" },                -- Project root markers
           autoload_file = "/vendor/composer/autoload_psr4.php" -- Autoload file path
         },
-        custom_toggles = {
+        custom_toggles = { -- delete if you dont use it
         -- { "foo", "bar", "baz" }, -- Add more custom toggle groups here
         }
       })
 
       local map = vim.keymap.set
 
-      local ide_helper = require('phptools.ide_helper')
+      local ide_helper = require('phptools.ide_helper') -- delete if you dont use it
       -- Laravel IDE Helper keymaps
       map('n', '<leader>lha', ide_helper.generate_all, { desc = 'Generate all IDE helpers' })
       map('n', '<leader>lhm', ide_helper.generate_models, { desc = 'Generate model helpers' })
@@ -265,7 +253,7 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
       map('n', '<leader>lhi', ide_helper.install, { desc = 'Install IDE Helper package' })
 
 
-      local tests = require("phptools.tests")
+      local tests = require("phptools.tests") -- delete if you have a test plugin
       map("n", "<Leader>ta", tests.test.all, { desc = "Run all tests" })
       map("n", "<Leader>tf", tests.test.file, { desc = "Run current file tests" })
       map("n", "<Leader>tl", tests.test.line, { desc = "Run test at cursor" })
@@ -273,12 +261,6 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
       map("n", "<Leader>tp", tests.test.parallel, { desc = "Run tests in parallel" })
       map("n", "<Leader>tr", tests.test.rerun, { desc = "Rerun last test" })
       map("n", "<Leader>ti", tests.test.selected, { desc = "Run selected test file" })
-
-      local fn = require('phptools.fn')
-      map('n', '<leader>llf', fn.toggle_function, { desc = 'Toggle PHP function style' })
-      map('n', '<leader>lli', fn.toggle_if_ternary, { desc = "Toggle if/ternary" })
-      map('n', '<leader>llm', fn.toggle_if_match, { desc = "Toggle if/match" })
-      map('n', '<leader>llm', fn.toggle_quotes, { desc = "Toggle qoutes" })
 
     end
 }
