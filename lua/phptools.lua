@@ -8,7 +8,6 @@ local config = {
     enable = true,
     fzf = false,
   },
-  create = false,
   toggle_options = {},
   drupal_autoloader = {},
 }
@@ -24,18 +23,6 @@ M.setup = function(args)
 
   require("phptools.toggle").setup(M.config.toggle_options)
   require("phptools.drupal_autoloader").setup(M.config.drupal_autoloader)
-
-  if M.config.create == true then
-    vim.api.nvim_create_autocmd("BufNewFile", {
-      pattern = "*.php",
-      callback = function()
-        if vim.fn.expand("%:e") == "php" then
-          require("phptools.create"):run()
-        end
-      end,
-      group = vim.api.nvim_create_augroup("PhpToolsCreateFile", { clear = true }),
-    })
-  end
 
   if M.config.ui.enable == true then
     require("phptools.ui").setup()

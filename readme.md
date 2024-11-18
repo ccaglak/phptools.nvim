@@ -221,8 +221,8 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
         { mode="v", "<leader>lr", "<cmd>PhpTools Refactor<cr>"},
     },
     dependencies = {
-         "ccaglak/namespace.nvim", -- optional - php namespace resolver
-        "ccaglak/larago.nvim", -- optional -- laravel goto blade/components
+        -- "ccaglak/namespace.nvim", -- optional - php namespace resolver
+        -- "ccaglak/larago.nvim", -- optional -- laravel goto blade/components
         -- "ccaglak/snippets.nvim", -- optional -- native snippet expander
     },
     config = function()
@@ -231,7 +231,6 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
           enable = true, -- default:true; false only if you have a UI enhancement plugin
           fzf = false -- default:false; tests requires fzf used only in tests module otherwise there might long list  of tests
         },
-        create = false, -- default:false autorun PhpTools Create when creating a new php file
         drupal_autoloader = { -- delete if you dont use it
           scan_paths = { "/web/modules/contrib/" }, -- Paths to scan for modules
           root_markers = { ".git" },                -- Project root markers
