@@ -1,6 +1,5 @@
 local tree = require("phptools.treesitter")
-local api = vim.api
-local fn = vim.fn
+local api, fn = vim.api, vim.fn
 local buf_request_sync = vim.lsp.buf_request_sync
 local jump_to_location = vim.lsp.util.show_document
 local make_position_params = vim.lsp.util.make_position_params
@@ -128,7 +127,7 @@ local function await(cond, after)
   local timer = vim.uv.new_timer()
   timer:start(
     0,
-    100,
+    200,
     vim.schedule_wrap(function()
       if cond() then
         timer:stop()
@@ -158,15 +157,13 @@ function Method:create_position_params(node)
 end
 
 function Method:find_and_jump_to_definition(params, methods)
-  methods = methods or { "textDocument/definition" }
-  for _, method in ipairs(methods) do
-    local results = buf_request_sync(0, method, params, 1000)
-    if results and not vim.tbl_isempty(results) then
-      for _, result in pairs(results) do
-        if result.result and #result.result > 0 then
-          jump_to_location(result.result[1], "utf-8")
-          return result.result[1]
-        end
+  methods = methods or "textDocument/definition"
+  local results = buf_request_sync(0, methods, params, 1000)
+  if results and not vim.tbl_isempty(results) then
+    for _, result in pairs(results) do
+      if result.result and #result.result > 0 then
+        jump_to_location(result.result[1], "utf-8")
+        return result.result[1]
       end
     end
   end
