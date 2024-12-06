@@ -28,7 +28,7 @@ Method.__index = Method
 
 function Method:init()
   self.template = nil
-  self.params = make_position_params()
+  self.params = make_position_params(nil, "utf-16")
   self.current_file = self.params.textDocument.uri:gsub("file://", "")
   self.parent, self.method, self.variable_or_scope = self:get_position()
 end
@@ -149,7 +149,7 @@ end
 
 function Method:create_position_params(node)
   return {
-    textDocument = make_position_params().textDocument,
+    textDocument = make_position_params(nil, "utf-16").textDocument,
     position = {
       character = node.range[2] + 1,
       line = node.range[1],

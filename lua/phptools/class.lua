@@ -15,7 +15,7 @@ Class.templates = {
 
 function Class:new()
   return setmetatable({
-    params = vim.lsp.util.make_position_params(),
+    params = vim.lsp.util.make_position_params(nil, "utf-16"),
     constructor = false,
   }, { __index = self })
 end
