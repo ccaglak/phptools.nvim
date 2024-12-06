@@ -50,9 +50,6 @@ end
 
 function Class:find_or_create_class()
   self.file_location = self:get_location(self:class_position(), "textDocument/definition")
-  if self.file_location == {} then
-    self.file_location = self:get_location(self:class_position(), "textDocument/typeDefinition")
-  end
 
   if self.file_location[1] then
     vim.lsp.util.show_document(self.file_location[1], "utf-8")

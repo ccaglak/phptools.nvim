@@ -128,7 +128,7 @@ local function await(cond, after)
   local timer = vim.uv.new_timer()
   timer:start(
     0,
-    250,
+    100,
     vim.schedule_wrap(function()
       if cond() then
         timer:stop()
@@ -158,7 +158,7 @@ function Method:create_position_params(node)
 end
 
 function Method:find_and_jump_to_definition(params, methods)
-  methods = methods or { "textDocument/definition", "textDocument/typeDefinition" }
+  methods = methods or { "textDocument/definition" }
   for _, method in ipairs(methods) do
     local results = buf_request_sync(0, method, params, 1000)
     if results and not vim.tbl_isempty(results) then
