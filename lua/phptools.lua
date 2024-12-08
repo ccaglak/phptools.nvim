@@ -24,7 +24,6 @@ M.config = config
 
 ---@param args Config?
 M.setup = function(args)
-  dd(args)
   M.config = vim.tbl_deep_extend("force", M.config, args or {})
 
   if M.config.custom_toggles.enable == true then
