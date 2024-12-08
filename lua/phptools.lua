@@ -8,8 +8,9 @@ local config = {
     enable = true,
     fzf = false,
   },
-  toggle_options = {},
-  drupal_autoloader = {},
+
+  toggle_options = { enable = false },
+  drupal_autoloader = { enable = false },
 }
 
 local M = {}
@@ -21,8 +22,13 @@ M.config = config
 M.setup = function(args)
   M.config = vim.tbl_deep_extend("force", M.config, args or {})
 
-  require("phptools.toggle").setup(M.config.toggle_options)
-  require("phptools.drupal_autoloader").setup(M.config.drupal_autoloader)
+  if M.config.toggle_options.enable == true then
+    require("phptools.toggle").setup(M.config.toggle_options)
+  end
+
+  if M.config.drupal_autoloader.enable == true then
+    require("phptools.drupal_autoloader").setup(M.config.drupal_autoloader)
+  end
 
   if M.config.ui.enable == true then
     require("phptools.ui").setup()
