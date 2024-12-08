@@ -2,7 +2,6 @@ local tree = require("phptools.treesitter")
 local api, fn = vim.api, vim.fn
 local buf_request_sync = vim.lsp.buf_request_sync
 local jump_to_location = vim.lsp.util.show_document
-local make_position_params = vim.lsp.util.make_position_params
 
 local Method = {
   templates = {
@@ -25,9 +24,16 @@ local Method = {
 }
 Method.__index = Method
 
+local function make_position_params()
+  if vim.fn.has("nvim-0.11") == 1 then
+    return vim.lsp.util.make_position_params(nil, "utf-16")
+  end
+  return vim.lsp.util.make_position_params()
+end
+
 function Method:init()
   self.template = nil
-  self.params = make_position_params(nil, "utf-16")
+  self.params = make_position_params()
   self.current_file = self.params.textDocument.uri:gsub("file://", "")
   self.parent, self.method, self.variable_or_scope = self:get_position()
 end
@@ -155,7 +161,7 @@ end
 
 function Method:create_position_params(node)
   return {
-    textDocument = make_position_params(nil, "utf-16").textDocument,
+    textDocument = make_position_params().textDocument,
     position = {
       character = node.range[2] + 1,
       line = node.range[1],

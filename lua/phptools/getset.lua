@@ -59,8 +59,15 @@ function Etter:get_methods_to_generate(choice)
   return methods
 end
 
+local function make_position_params()
+  if vim.fn.has("nvim-0.11") == 1 then
+    return vim.lsp.util.make_position_params(nil, "utf-16")
+  end
+  return vim.lsp.util.make_position_params()
+end
+
 function Etter:get_existing_methods()
-  local params = vim.lsp.util.make_position_params(nil, "utf-16")
+  local params = make_position_params()
   local results_lsp = vim.lsp.buf_request_sync(0, "textDocument/documentSymbol", params, 5000)
   local existing_methods = {}
 
