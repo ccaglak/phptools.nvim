@@ -114,7 +114,6 @@ function M.setup(config)
   }
   for key, func in pairs(mappings) do
     vim.keymap.set("n", key, func, {
-      buffer = true,
       noremap = true,
       silent = true,
       desc = "Toggle PHP words or increment/decrement",

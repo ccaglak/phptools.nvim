@@ -124,14 +124,21 @@ function Method:handle_undefined_class()
 end
 
 local function await(cond, after)
+  local timeout = 20000
   local timer = vim.uv.new_timer()
+  local elapsed = 0
+  local interval = 200
   timer:start(
     0,
-    200,
+    interval,
     vim.schedule_wrap(function()
       if cond() then
         timer:stop()
         after()
+      elseif elapsed >= timeout then
+        timer:stop()
+      else
+        elapsed = elapsed + interval
       end
     end)
   )
