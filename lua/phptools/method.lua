@@ -88,6 +88,7 @@ function Method:get_position()
       if object.node:type() == "variable_name" and tree.get_text(object.node) == "$this" then
         return object.node, cnode, tree.children(object.node, "name")
       end
+
       if object.node:type() == "variable_name" then
         local variable_position = self:create_position_params(object)
         self:find_and_jump_to_definition(variable_position)
@@ -95,7 +96,15 @@ function Method:get_position()
         local assignment = tree.find_parent(tree.cursor(), "assignment_expression")
         if assignment then
           local right_side = tree.children(assignment.node, "object_creation_expression")
-          class = tree.children(right_side.node, "name")
+          if right_side then
+            class = tree.children(right_side.node, "name")
+          end
+        end
+        if not class then
+          local parameter_declaration = tree.find_parent(tree.cursor(), "parameter_declaration")
+          if parameter_declaration then
+            class = tree.children(parameter_declaration.node, "named_type")
+          end
         end
 
         return node, cnode, class

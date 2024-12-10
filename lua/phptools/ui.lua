@@ -1,21 +1,14 @@
 local api = vim.api
 local fn = vim.fn
 
-local ui = require("phptools").config.ui
+-- local ui = require("phptools").config.ui
 local notify = require("phptools.notify").notify
 
 local M = {}
 
 M.setup = function()
-  vim.ui.select = M.select()
+  vim.ui.select = M.norm_select
   vim.ui.input = M.input
-end
-
-M.select = function()
-  if ui.fzf then
-    return M.fzf_select
-  end
-  return M.norm_select
 end
 
 function M.fzf_select(items, opts, on_choice)

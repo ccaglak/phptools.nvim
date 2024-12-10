@@ -1,5 +1,15 @@
 local M = {}
 local notify = require("phptools.notify").notify
+local ui = require("phptools").config.ui
+
+local vim_ui_select = vim.ui.select
+
+if ui.fzf then
+  vim_ui_select = require("phptools.ui").fzf_select
+else
+  vim_ui_select = vim.ui.select
+end
+
 -- Patterns
 local test_patterns = {
   annotation = ".*@test.*",
@@ -173,7 +183,7 @@ M.test = {
   end,
   filter = function()
     get_test_names(function(test_names)
-      vim.ui.select(test_names, {
+      vim_ui_select(test_names, {
         prompt = "Select test to run:",
         format_item = function(item)
           return item
@@ -187,7 +197,7 @@ M.test = {
   end,
 
   selected = function()
-    vim.ui.select(vim.fn.glob("tests/**/*Test.php", false, true), {
+    vim_ui_select(vim.fn.glob("tests/**/*Test.php", false, true), {
       prompt = "Select test file to run:",
       format_item = function(item)
         return vim.fn.fnamemodify(item, ":.")
