@@ -29,6 +29,8 @@ function M.fzf_select(items, opts, on_choice)
 
   fn.clearmatches(window)
 
+  api.nvim_buf_set_keymap(buffer, "n", "<Esc>", "<cmd>close<CR>", { noremap = true, silent = true })
+
   -- Set buffer options
   api.nvim_set_option_value("buftype", "nofile", { buf = buffer })
   api.nvim_set_option_value("swapfile", false, { buf = buffer })
@@ -50,7 +52,10 @@ function M.fzf_select(items, opts, on_choice)
       FZF_DEFAULT_OPTS = fzf_opts,
     },
     on_exit = function(_, code)
-      api.nvim_buf_delete(buffer, {})
+      if api.nvim_buf_is_valid(buffer) then
+        api.nvim_buf_delete(buffer, {})
+      end
+
       if code == 0 then
         for line in io.lines(result) do
           for i, item in ipairs(formatted_items) do
@@ -60,6 +65,8 @@ function M.fzf_select(items, opts, on_choice)
             end
           end
         end
+      else
+        on_choice(nil, nil)
       end
       fn.delete(result)
     end,
