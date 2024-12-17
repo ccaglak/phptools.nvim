@@ -6,7 +6,7 @@ local default_word_arrays = {
   { "true", "false" },
   { "require", "require_once", "include" },
   { "abstract", "final" },
-  { "class", "interface", "trait" },
+  { "class", "interface", "trait", "enum" },
   { "string", "int", "float", "bool", "array" },
 }
 

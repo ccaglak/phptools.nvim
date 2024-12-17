@@ -12,7 +12,7 @@ function Create:run()
 
   local file_ns = composer.resolve_namespace()
 
-  vim.ui.select({ "class", "trait", "interface", "enum", "abstract" }, {
+  vim.ui.select({ "class", "enum", "interface", "trait", "abstract", "ps", "psa" }, {
     prompt = "Create",
   }, function(selection)
     if not selection then
@@ -37,6 +37,14 @@ function Create:template_builder(filename, template, file_ns)
     "declare(strict_types=1);",
     "",
   }
+  if template == "ps" then
+    return tmpl
+  end
+  if template == "psa" then
+    table.insert(tmpl, "require __DIR__.'/vendor/autoload.php';")
+    return tmpl
+  end
+
   table.insert(tmpl, file_ns)
   table.insert(tmpl, "")
   if template == "abstract" then

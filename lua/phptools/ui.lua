@@ -1,7 +1,6 @@
 local api = vim.api
 local fn = vim.fn
 
--- local ui = require("phptools").config.ui
 local notify = require("phptools.notify").notify
 
 local M = {}
