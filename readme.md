@@ -50,7 +50,7 @@ Generates the entity with proper namespace and creates a use statement for the c
 
 ### PhpScripts
 
-Command: `:Php Scripts`
+Command: `:PhpTools Scripts`
 
 Runs Composer scripts defined in your `composer.json` file.
 
@@ -118,7 +118,7 @@ Quickly surround your PHP code with common structures and control flow statement
 ### Usage:
 
 1. Select the text you want to surround in visual/visualline mode
-2. Execute the `:Php Refactor` command
+2. Execute the `:PhpTools Refactor` command
 3. Choose from the available options:
 
    - `if`: Wraps the selection in an if statement
@@ -198,7 +198,6 @@ PhpTools.nvim includes built-in support for Laravel IDE Helper.
 
 ### Automatic Features
 
-- Auto-generates model helpers when saving files in `app/Models/`
 - Shows progress notifications during helper generation
 - Validates Laravel project structure before operations
 
