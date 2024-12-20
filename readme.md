@@ -168,11 +168,7 @@ PhpTools.nvim provides comprehensive test running capabilities for PHP projects 
 - Parallel test execution support
 - Re-run last test
 
-
-
 https://github.com/user-attachments/assets/61828e80-f165-4cc0-bc90-414d5401eacc
-
-
 
 ## Drupal Autoloader
 
@@ -192,14 +188,9 @@ PhpTools.nvim includes built-in support for Laravel IDE Helper.
 ### Features
 
 - Generate helpers for facades, models, and meta files
-- Interactive model selection for targeted generation
 - One-command installation and setup
 - Progress notifications for long-running operations
 
-### Automatic Features
-
-- Shows progress notifications during helper generation
-- Validates Laravel project structure before operations
 
 
 ## Installation
