@@ -163,6 +163,10 @@ function Class:get_parent()
 end
 
 function Class:template_builder()
+  if self.parent.type == "class_constant_access_expression" and string.match(self.parent.text, "class") then
+    self.parent.type = "" -- this will result template to default to class
+  end
+
   local template = self.templates[self.parent.type] or "class"
   local tmpl = {
     "<?php",

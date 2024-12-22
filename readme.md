@@ -269,12 +269,16 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 ## Known bugs
 ## Check Out
 
-- PHP Namespace Resolver [namespace.nvim](https://github.com/ccaglak/namespace.nvim).
-- Snippets.nvim [snippets.nvim](https://github.com/ccaglak/snippets.nvim).
-- Laravel Goto Blade/Components [larago.nvim](https://github.com/ccaglak/larago.nvim).
+- PHP Namespace Resolver [namespace.nvim](https://github.com/ccaglak/namespace.nvim)
+- Snippets.nvim [snippets.nvim](https://github.com/ccaglak/snippets.nvim)
+- Laravel Goto Blade/Components [larago.nvim](https://github.com/ccaglak/larago.nvim)
 
 ## Inspired
 
 - by PHPStorm
+
+## Self Promotion
+
+- Condo Painters Pro [Condo Painters Pro](https://www.condopainterspro.ca)
 
 ## License MIT
