@@ -136,8 +136,8 @@ function N.resolve_namespace_composer(current_dir)
   current_dir = current_dir:gsub(root, ""):gsub(sep, "\\"):gsub(".php$", "")
 
   for _, entry in ipairs(prefix_and_src or {}) do
-    if current_dir:find(entry.src) ~= nil then
-      return parse(current_dir:gsub(entry.src, entry.prefix))
+    if current_dir:find(entry.src:gsub(sep, "\\")) ~= nil then
+      return parse(current_dir:gsub(entry.src:gsub(sep, "\\"), entry.prefix))
     end
   end
 end
@@ -158,11 +158,6 @@ function N.read_composer_file()
 end
 
 function N.generate_use_statement_composer(filepath)
-  local composer_data = N.read_composer_file()
-  if not composer_data then
-    return nil
-  end
-
   local prefix_and_src = N.get_prefix_and_src()
   local relative_path = filepath:gsub(root, "")
   relative_path = relative_path:gsub(sep, "\\")
@@ -180,6 +175,9 @@ end
 -- Get prefix and src from composer.json
 function N.get_prefix_and_src()
   local composer_data = N.read_composer_file()
+  if not composer_data then
+    return nil
+  end
 
   if composer_data == nil or composer_data["autoload"] == nil then
     return nil, nil
