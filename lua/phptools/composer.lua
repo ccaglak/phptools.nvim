@@ -184,7 +184,6 @@ function N.get_prefix_and_src()
   end
 
   local autoload = composer_data["autoload"]
-  local autoloaddev = composer_data["autoload-dev"]
   local result = {}
 
   if autoload["psr-4"] ~= nil then
@@ -193,8 +192,8 @@ function N.get_prefix_and_src()
     end
   end
 
-  if autoloaddev["psr-4"] ~= nil then
-    for prefix, src in pairs(autoloaddev["psr-4"]) do
+  if composer_data["autoload-dev"] and composer_data["autoload-dev"]["psr-4"] ~= nil then
+    for prefix, src in pairs(composer_data["autoload-dev"]["psr-4"]) do
       table.insert(result, { prefix = prefix, src = src:gsub(sep .. "$", "") })
     end
   end
