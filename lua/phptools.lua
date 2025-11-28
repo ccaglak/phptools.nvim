@@ -2,7 +2,6 @@
 require("phptools.funcs")
 
 ---@class Config
----@field opt string
 local config = {
   ui = {
     enable = true,
@@ -10,9 +9,6 @@ local config = {
   },
 
   custom_toggles = {
-    enable = false,
-  },
-  drupal_autoloader = {
     enable = false,
   },
 }
@@ -28,10 +24,6 @@ M.setup = function(args)
 
   if M.config.custom_toggles.enable == true then
     require("phptools.toggle").setup(M.config.custom_toggles)
-  end
-
-  if M.config.drupal_autoloader.enable == true then
-    require("phptools.drupal_autoloader").setup(M.config.drupal_autoloader)
   end
 
   if M.config.ui.enable == true then
@@ -65,10 +57,6 @@ end
 
 M.namespace = function()
   require("phptools.composer"):resolve()
-end
-
-M.drupalautoloader = function()
-  require("phptools.drupal_autoloader").update_autoload()
 end
 
 return M

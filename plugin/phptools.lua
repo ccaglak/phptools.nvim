@@ -8,7 +8,6 @@ local command_map = {
   Scripts = "Scripts",
   Refactor = "Refactor",
   Create = "Create",
-  DrupalAutoloader = "DrupalAutoloader",
 }
 
 local function execute_command(command)

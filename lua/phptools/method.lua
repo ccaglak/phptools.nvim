@@ -25,10 +25,7 @@ local Method = {
 Method.__index = Method
 
 local function make_position_params()
-  if vim.fn.has("nvim-0.11") == 1 then
     return vim.lsp.util.make_position_params(nil, "utf-16")
-  end
-  return vim.lsp.util.make_position_params()
 end
 
 function Method:init()
