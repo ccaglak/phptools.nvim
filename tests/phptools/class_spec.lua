@@ -284,13 +284,13 @@ describe("Class module", function()
   end)
 
   describe("Class:create_new_class() with PSR-4 paths", function()
-    it("should display available PSR-4 autoload paths", function()
+    it("should show available PSR-4 paths in notification", function()
       local instance = Class:new()
       instance.class_name = { text = "TestClass" }
       instance.parent = { type = "object_creation_expression" }
 
-      local select_called = false
-      local select_items = nil
+      local notify_called = false
+      local notify_message = nil
 
       -- Mock composer.get_prefix_and_src to return PSR-4 paths
       local original_get_prefix = require("phptools.composer").get_prefix_and_src
@@ -302,23 +302,27 @@ describe("Class module", function()
         }
       end
 
-      -- Mock vim.ui.select to capture options
-      vim.ui.select = function(items, opts, callback)
-        select_called = true
-        select_items = items
+      -- Mock vim.notify to capture notification
+      local original_notify = vim.notify
+      vim.notify = function(msg, level)
+        notify_called = true
+        notify_message = msg
       end
+
+      -- Mock vim.ui.input
+      vim.ui.input = function(opts, callback) end
 
       instance:create_new_class()
 
       -- Restore
       require("phptools.composer").get_prefix_and_src = original_get_prefix
+      vim.notify = original_notify
 
-      assert.truthy(select_called)
-      assert.equals(#select_items, 4) -- 3 PSR-4 paths + 1 "Create new directory" option
-      assert.equals(select_items[1].path, "src/")
-      assert.equals(select_items[1].prefix, "SkeletonSrc\\")
-      assert.equals(select_items[4].path, "[Create new directory]")
-      assert.equals(select_items[4].is_custom, true)
+      assert.truthy(notify_called)
+      assert.truthy(notify_message:match("Available paths"))
+      assert.truthy(notify_message:match("src/"))
+      assert.truthy(notify_message:match("app/"))
+      assert.truthy(notify_message:match("core/"))
     end)
 
     it("should handle mkdir failure gracefully", function()
@@ -359,12 +363,12 @@ describe("Class module", function()
       assert.truthy(notify_message:match("Failed to create directory"))
     end)
 
-    it("should fall back to current directory when no PSR-4 paths found", function()
+    it("should show input even when no PSR-4 paths found", function()
       local instance = Class:new()
       instance.class_name = { text = "TestClass" }
       instance.parent = { type = "object_creation_expression" }
 
-      local select_items = nil
+      local input_called = false
 
       -- Mock composer.get_prefix_and_src to return empty list
       local original_get_prefix = require("phptools.composer").get_prefix_and_src
@@ -372,9 +376,9 @@ describe("Class module", function()
         return {}
       end
 
-      -- Mock vim.ui.select to capture options
-      vim.ui.select = function(items, opts, callback)
-        select_items = items
+      -- Mock vim.ui.input to verify it's still called
+      vim.ui.input = function(opts, callback)
+        input_called = true
       end
 
       instance:create_new_class()
@@ -382,49 +386,15 @@ describe("Class module", function()
       -- Restore
       require("phptools.composer").get_prefix_and_src = original_get_prefix
 
-      assert.equals(#select_items, 2) -- "." directory + create new option
-      assert.equals(select_items[1].path, ".")
-      assert.equals(select_items[1].prefix, "")
+      assert.truthy(input_called)
     end)
 
-    it("should include create new directory option", function()
+    it("should accept user input for directory path", function()
       local instance = Class:new()
       instance.class_name = { text = "TestClass" }
       instance.parent = { type = "object_creation_expression" }
 
-      local select_items = nil
-
-      -- Mock composer.get_prefix_and_src
-      local original_get_prefix = require("phptools.composer").get_prefix_and_src
-      require("phptools.composer").get_prefix_and_src = function()
-        return {
-          { prefix = "App\\", src = "src/" }
-        }
-      end
-
-      -- Mock vim.ui.select to capture options
-      vim.ui.select = function(items, opts, callback)
-        select_items = items
-      end
-
-      instance:create_new_class()
-
-      -- Restore
-      require("phptools.composer").get_prefix_and_src = original_get_prefix
-
-      -- Should have 1 PSR-4 path + create new option
-      assert.equals(#select_items, 2)
-      assert.equals(select_items[1].path, "src/")
-      assert.equals(select_items[2].is_custom, true)
-      assert.equals(select_items[2].path, "[Create new directory]")
-    end)
-
-    it("should prompt for custom directory when selected", function()
-      local instance = Class:new()
-      instance.class_name = { text = "TestClass" }
-      instance.parent = { type = "object_creation_expression" }
-
-      local input_prompt = nil
+      local input_called = false
 
       -- Mock composer.get_prefix_and_src
       local original_get_prefix = require("phptools.composer").get_prefix_and_src
@@ -432,14 +402,10 @@ describe("Class module", function()
         return { { prefix = "App\\", src = "src/" } }
       end
 
-      -- Mock vim.ui.select to select the custom option
-      vim.ui.select = function(items, opts, callback)
-        callback(items[2]) -- Select "Create new directory"
-      end
-
-      -- Mock vim.ui.input to capture prompt
-      vim.ui.input = function(opts, input_callback)
-        input_prompt = opts.prompt
+      -- Mock vim.ui.input to verify it's called
+      vim.ui.input = function(opts, callback)
+        input_called = true
+        assert.truthy(opts.prompt:match("Enter directory"))
       end
 
       instance:create_new_class()
@@ -447,7 +413,7 @@ describe("Class module", function()
       -- Restore
       require("phptools.composer").get_prefix_and_src = original_get_prefix
 
-      assert.truthy(input_prompt:match("Enter directory path"))
+      assert.truthy(input_called)
     end)
   end)
 end)

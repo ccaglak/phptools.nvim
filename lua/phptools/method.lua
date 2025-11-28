@@ -31,7 +31,9 @@ end
 function Method:init()
   self.template = nil
   self.params = make_position_params()
-  self.current_file = self.params.textDocument.uri:gsub("file://", "")
+  if self.params and self.params.textDocument and self.params.textDocument.uri then
+    self.current_file = self.params.textDocument.uri:gsub("file://", "")
+  end
   self.parent, self.method, self.variable_or_scope = self:get_position()
 end
 
@@ -75,10 +77,12 @@ function Method:get_position()
 
       if object.node:type() == "member_access_expression" then
         local name = tree.children(object.node, "name")
-        local variable_position = self:create_position_params(name)
-        self:find_and_jump_to_definition(variable_position)
+        if name then
+          local variable_position = self:create_position_params(name)
+          self:find_and_jump_to_definition(variable_position)
+        end
         local vparent = tree.parent("property_declaration")
-        local class = tree.children(vparent.node, "named_type")
+        local class = vparent and tree.children(vparent.node, "named_type")
         return node, cnode, class
       end
 
@@ -117,6 +121,10 @@ end
 
 function Method:handle_other_scope()
   local variable_position = self:create_position_params(self.variable_or_scope)
+  if not variable_position then
+    self:handle_undefined_class()
+    return
+  end
   local location = self:find_and_jump_to_definition(variable_position)
   local uri = location and (location.uri or location.targetUri)
   if uri then
@@ -160,12 +168,19 @@ function Method:await_class_creation()
   await(function()
     return _G._filepath_ ~= nil
   end, function()
+    if not _G._filepath_ then
+      vim.notify("Class creation timed out", vim.log.levels.WARN)
+      return
+    end
     local bufnr = self:get_buffer(_G._filepath_)
     self:add_to_buffer(self:generate_method_lines(self.method.text), bufnr)
   end)
 end
 
 function Method:create_position_params(node)
+  if not node or not node.range then
+    return nil
+  end
   return {
     textDocument = make_position_params().textDocument,
     position = {
@@ -190,7 +205,11 @@ function Method:find_and_jump_to_definition(params, methods)
 end
 
 function Method:generate_method_lines(method_name)
-  local template = self.templates[self.template]
+  local template = self.templates[self.template] or self.templates.default
+  if not template then
+    vim.notify("No template found for method generation", vim.log.levels.ERROR)
+    return {}
+  end
   local lines = {}
   for _, line in ipairs(template) do
     table.insert(lines, string.format(line, method_name))

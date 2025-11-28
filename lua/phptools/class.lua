@@ -37,24 +37,38 @@ function Class:run()
 end
 
 function Class:process_parent()
-  self.constructor = self.parent.type == "object_creation_expression" and self.parent.text:match("%((.-)%)") ~= ""
-  self.parent.text = self.parent.text:gsub("%b()", "")
+  if self.parent and self.parent.text then
+    self.constructor = self.parent.type == "object_creation_expression" and self.parent.text:match("%((.-)%)") ~= ""
+    self.parent.text = self.parent.text:gsub("%b()", "")
+  end
 end
 
 function Class:get_class_name()
-  self.class_name = self.parent.type == "class_constant_access_expression"
-      and {
-        node = self.parent.node:child(),
-        text = tree.get_text(self.parent.node:child()),
-        range = { self.parent.node:child():range() },
+  if self.parent.type == "class_constant_access_expression" and self.parent.node then
+    local child = self.parent.node:child()
+    if child then
+      self.class_name = {
+        node = child,
+        text = tree.get_text(child),
+        range = { child:range() },
       }
-    or tree.children(self.parent.node, "name")
-    or tree.children(self.parent.node, "named_type")
+      return
+    end
+  end
+
+  if self.parent.node then
+    self.class_name = tree.children(self.parent.node, "name") or tree.children(self.parent.node, "named_type")
+  end
 end
 
 function Class:find_or_create_class()
-  self.file_location = self:get_location(self:class_position(), "textDocument/definition")
+  local class_pos = self:class_position()
+  if not class_pos then
+    self:create_new_class()
+    return
+  end
 
+  self.file_location = self:get_location(class_pos, "textDocument/definition")
 
   if self.file_location and self.file_location[1] then
     vim.lsp.util.show_document(self.file_location[1], "utf-8")
@@ -81,54 +95,36 @@ local function normalize_path(path)
 end
 
 function Class:create_new_class()
+  if not self.class_name or not self.class_name.text then
+    vim.notify("Unable to determine class name", vim.log.levels.ERROR)
+    return
+  end
+
   local pre_src = composer.get_prefix_and_src()
   if not pre_src then
     return
   end
 
-  -- Build list of available directories from PSR-4 autoload
-  local dirs = {}
+  -- Build list of available directories from PSR-4 autoload for reference
+  local available_paths = {}
   for _, entry in ipairs(pre_src) do
-    table.insert(dirs, { path = entry.src, prefix = entry.prefix, is_custom = false })
+    table.insert(available_paths, entry.src .. " (" .. entry.prefix .. ")")
   end
 
-  -- If no PSR-4 paths found, fall back to current directory
-  if #dirs == 0 then
-    table.insert(dirs, { path = ".", prefix = "", is_custom = false })
+  -- Show available paths as notification
+  if #available_paths > 0 then
+    vim.notify("Available paths:\n" .. table.concat(available_paths, "\n"), vim.log.levels.INFO)
   end
 
-  -- Add option to create custom directory
-  table.insert(dirs, { path = "[Create new directory]", prefix = "", is_custom = true })
-
-  vim.ui.select(dirs, {
-    prompt = "Select directory for " .. self.class_name.text .. ".php",
-    format_item = function(item)
-      if item.is_custom then
-        return item.path
-      end
-      return item.path .. " (" .. item.prefix .. ")"
-    end,
-  }, function(selection)
-    if not selection then
+  vim.ui.input({
+    prompt = "Enter directory for " .. self.class_name.text .. ".php: ",
+    completion = "dir",
+    default = vim.fn.expand("%:h"),
+  }, function(dir)
+    if not dir then
       return
     end
-
-    local dir
-    if selection.is_custom then
-      -- Prompt user for custom directory
-      vim.ui.input({
-        prompt = "Enter directory path for " .. self.class_name.text .. ".php",
-        completion = "dir",
-        default = vim.fn.expand("%:h"),
-      }, function(custom_dir)
-        if not custom_dir then
-          return
-        end
-        self:_create_class_in_directory(normalize_path(custom_dir))
-      end)
-    else
-      self:_create_class_in_directory(normalize_path(selection.path))
-    end
+    self:_create_class_in_directory(normalize_path(dir))
   end)
 end
 
@@ -160,6 +156,9 @@ function Class:finalize_buffer(bufnr)
 end
 
 function Class:class_position()
+  if not self.class_name or not self.class_name.range then
+    return nil
+  end
   return {
     textDocument = self.params.textDocument,
     position = { character = self.class_name.range[2] + 1, line = self.class_name.range[1] },
