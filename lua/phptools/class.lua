@@ -65,6 +65,8 @@ end
 
 -- normalizes path for unix or windows, converts absolute to relative
 local function normalize_path(path)
+  local sep = _G.sep or (vim.uv.os_uname().sysname == "Windows_NT" and "\\" or "/")
+
   -- Remove leading slashes to make path relative (prevent absolute paths)
   path = path:gsub("^[\\/]+", "")
 

@@ -314,9 +314,11 @@ describe("Class module", function()
       require("phptools.composer").get_prefix_and_src = original_get_prefix
 
       assert.truthy(select_called)
-      assert.equals(#select_items, 3)
+      assert.equals(#select_items, 4) -- 3 PSR-4 paths + 1 "Create new directory" option
       assert.equals(select_items[1].path, "src/")
       assert.equals(select_items[1].prefix, "SkeletonSrc\\")
+      assert.equals(select_items[4].path, "[Create new directory]")
+      assert.equals(select_items[4].is_custom, true)
     end)
 
     it("should handle mkdir failure gracefully", function()
@@ -410,8 +412,9 @@ describe("Class module", function()
       -- Restore
       require("phptools.composer").get_prefix_and_src = original_get_prefix
 
-      -- Should have PSR-4 path + create new option
+      -- Should have 1 PSR-4 path + create new option
       assert.equals(#select_items, 2)
+      assert.equals(select_items[1].path, "src/")
       assert.equals(select_items[2].is_custom, true)
       assert.equals(select_items[2].path, "[Create new directory]")
     end)
