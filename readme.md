@@ -15,9 +15,8 @@ https://github.com/ccaglak/phptools.nvim/assets/98365888/b1334c0a-2fc7-4fee-a60e
 - Toggles common words <C-a> / <C-x> or fallbacks
 - Refactor with common structures and control flow statements
 - Run PHPUnit/Pest tests
-- Drupal autoloader - automatically manages PSR-4 autoloading for Drupal modules
 - Laravel IDE Helper - automatically generates ide helpers
-- Laravel, Symfony, Drupal compatible
+- Laravel, Symfony compatible
 
 ## Detailed Usage
 
@@ -170,16 +169,11 @@ PhpTools.nvim provides comprehensive test running capabilities for PHP projects 
 
 https://github.com/user-attachments/assets/61828e80-f165-4cc0-bc90-414d5401eacc
 
-## Drupal Autoloader
-
-PhpTools.nvim includes a powerful Drupal autoloader that automatically manages PSR-4 autoloading for Drupal modules. This feature helps keep your autoload configurations up-to-date as you develop Drupal modules.
-
 #### Features
 
 - Automatically scans contributed modules directory
 - Updates PSR-4 autoload configurations
 - Watches for changes in composer.json and autoload files
-- Maintains proper namespacing for Drupal modules
 
 ### Laravel IDE Helper Integration
 
@@ -207,7 +201,6 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
         { "<leader>ln", "<cmd>PhpTools Namespace<cr>"},
         { "<leader>lg", "<cmd>PhpTools GetSet<cr>"},
         { "<leader>lf", "<cmd>PhpTools Create<cr>"},
-        { "<leader>ld", "<cmd>PhpTools DrupalAutoLoader<cr>"},
         { mode="v", "<leader>lr", "<cmd>PhpTools Refactor<cr>"},
     },
     dependencies = {
@@ -220,12 +213,6 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
          ui = {
           enable = true, -- default:true; false only if you have a UI enhancement plugin
           fzf = false -- default:false; tests requires fzf used only in tests module otherwise there might long list  of tests
-        },
-        drupal_autoloader = { -- delete if you dont use it
-          enable = false, -- default:false
-          scan_paths = { "/web/modules/contrib/" }, -- Paths to scan for modules
-          root_markers = { ".git" },                -- Project root markers
-          autoload_file = "/vendor/composer/autoload_psr4.php" -- Autoload file path
         },
         custom_toggles = { -- delete if you dont use it
           enable = false, -- default:false

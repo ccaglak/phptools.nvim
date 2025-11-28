@@ -209,13 +209,26 @@ function Method:add_to_buffer(lines, bufnr)
   end
 
   fn.bufload(bufnr)
+
+  -- Check if method already exists in buffer to prevent duplicates
+  if self.method and self.method.text then
+    local buffer_content = api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local method_name = self.method.text
+    for _, line in ipairs(buffer_content) do
+      if line:match("function%s+" .. method_name .. "%s*%(") then
+        -- Method already exists, don't add duplicate
+        return
+      end
+    end
+  end
+
   local lastline = api.nvim_buf_line_count(bufnr)
 
   api.nvim_buf_set_lines(bufnr, lastline - 1, lastline - 1, true, lines)
 
   api.nvim_set_current_buf(bufnr)
   api.nvim_buf_call(bufnr, function()
-    vim.cmd("silent! write! | edit")
+    vim.cmd("silent! write! | silent! edit")
   end)
   fn.cursor({ lastline + #lines, 9 })
 end

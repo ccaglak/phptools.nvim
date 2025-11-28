@@ -14,7 +14,7 @@ Class.templates = {
 }
 
 local function make_position_params()
-    return vim.lsp.util.make_position_params(nil, "utf-16")
+  return vim.lsp.util.make_position_params(nil, "utf-16")
 end
 
 function Class:new()
@@ -55,16 +55,22 @@ end
 function Class:find_or_create_class()
   self.file_location = self:get_location(self:class_position(), "textDocument/definition")
 
-  if self.file_location[1] then
+
+  if self.file_location and self.file_location[1] then
     vim.lsp.util.show_document(self.file_location[1], "utf-8")
   else
     self:create_new_class()
   end
 end
 
--- normalizes path for unix or windows
+-- normalizes path for unix or windows, converts absolute to relative
 local function normalize_path(path)
+  -- Remove leading slashes to make path relative (prevent absolute paths)
+  path = path:gsub("^[\\/]+", "")
+
+  -- Remove trailing slashes
   path = path:gsub("[\\/]+$", "")
+
   if path ~= "" then
     path = path .. sep
   end
@@ -78,38 +84,75 @@ function Class:create_new_class()
     return
   end
 
-  -- local rt = vim.fn.expand("%:h")
-  -- if rt == "." then
-  --   rt = "/"
-  -- end
+  -- Build list of available directories from PSR-4 autoload
+  local dirs = {}
+  for _, entry in ipairs(pre_src) do
+    table.insert(dirs, { path = entry.src, prefix = entry.prefix, is_custom = false })
+  end
 
-  vim.ui.input({
-    prompt = "Directory for " .. self.class_name.text .. ".php",
-    completion = "dir",
-    default = vim.fn.expand("%:h"),
-  }, function(dir)
-    if not dir then
+  -- If no PSR-4 paths found, fall back to current directory
+  if #dirs == 0 then
+    table.insert(dirs, { path = ".", prefix = "", is_custom = false })
+  end
+
+  -- Add option to create custom directory
+  table.insert(dirs, { path = "[Create new directory]", prefix = "", is_custom = true })
+
+  vim.ui.select(dirs, {
+    prompt = "Select directory for " .. self.class_name.text .. ".php",
+    format_item = function(item)
+      if item.is_custom then
+        return item.path
+      end
+      return item.path .. " (" .. item.prefix .. ")"
+    end,
+  }, function(selection)
+    if not selection then
       return
     end
-    dir = normalize_path(dir)
-    vim.fn.mkdir(dir, "p")
 
-    local file_path = dir .. self.class_name.text .. ".php"
-    self.file_ns = composer.resolve_namespace(dir)
-    local current_ns = composer.generate_use_statement(file_path)
-
-    self:add_to_current_buffer({ current_ns })
-    local bufnr = self:get_bufnr(file_path)
-    self:add_template_to_buffer(self:template_builder(), bufnr)
-    self:finalize_buffer(bufnr)
-    _G._filepath_ = file_path
+    local dir
+    if selection.is_custom then
+      -- Prompt user for custom directory
+      vim.ui.input({
+        prompt = "Enter directory path for " .. self.class_name.text .. ".php",
+        completion = "dir",
+        default = vim.fn.expand("%:h"),
+      }, function(custom_dir)
+        if not custom_dir then
+          return
+        end
+        self:_create_class_in_directory(normalize_path(custom_dir))
+      end)
+    else
+      self:_create_class_in_directory(normalize_path(selection.path))
+    end
   end)
+end
+
+function Class:_create_class_in_directory(dir)
+  -- Attempt to create directory and handle errors
+  local mkdir_result = vim.fn.mkdir(dir, "p")
+  if mkdir_result == -1 then
+    vim.notify("Failed to create directory: " .. dir, vim.log.levels.ERROR)
+    return
+  end
+
+  local file_path = dir .. self.class_name.text .. ".php"
+  self.file_ns = composer.resolve_namespace(dir)
+  local current_ns = composer.generate_use_statement(file_path)
+
+  self:add_to_current_buffer({ current_ns })
+  local bufnr = self:get_bufnr(file_path)
+  self:add_template_to_buffer(self:template_builder(), bufnr)
+  self:finalize_buffer(bufnr)
+  _G._filepath_ = file_path
 end
 
 function Class:finalize_buffer(bufnr)
   vim.api.nvim_set_current_buf(bufnr)
   vim.api.nvim_buf_call(0, function()
-    vim.cmd("silent! wall! | edit")
+    vim.cmd("silent! wall! | silent! edit")
   end)
   vim.fn.cursor({ self.constructor and 11 or 9, 9 })
 end
