@@ -1,11 +1,26 @@
 local M = {}
-local notify = require("phptools.notify").notify
+local ui = require("phptools.ui")
 
+-- Default configuration
 local config = {
   models_path = "app/Models",
   artisan_path = "artisan",
   notify_timeout = 5000,
   composer_dev = true,
+}
+
+-- IDE Helper generation commands
+local HELPER_COMMANDS = {
+  "ide-helper:models -N",
+  "ide-helper:generate",
+  "ide-helper:meta",
+}
+
+-- Artisan generate command names mapped to methods
+local ARTISAN_GENERATORS = {
+  models = "ide-helper:models -N",
+  facades = "ide-helper:generate",
+  meta = "ide-helper:meta",
 }
 
 function M.setup(opts)
@@ -16,6 +31,14 @@ local function is_laravel()
   return vim.fn.filereadable("artisan") == 1
 end
 
+local function require_laravel(fn_name)
+  if not is_laravel() then
+    vim.notify("Not a Laravel project (artisan file not found)", vim.log.levels.WARN)
+    return false
+  end
+  return true
+end
+
 local function execute_command(cmd, callback, silent)
   vim.system(cmd, {
     text = true,
@@ -24,11 +47,11 @@ local function execute_command(cmd, callback, silent)
     vim.schedule(function()
       if obj.code == 0 then
         if not silent then
-          notify(obj.stdout, vim.log.levels.INFO)
+          vim.notify(obj.stdout, vim.log.levels.INFO)
         end
         callback(true, obj.stdout)
       else
-        notify(obj.stderr, vim.log.levels.ERROR)
+        vim.notify(obj.stderr, vim.log.levels.ERROR)
         callback(false, obj.stderr)
       end
     end)
@@ -45,38 +68,56 @@ local function execute_artisan(command, callback)
 end
 
 local function with_progress(message, fn)
-  local notify_id = notify(message .. "...", vim.log.levels.INFO, {
+  local notify_id = vim.notify(message .. "...", vim.log.levels.INFO, {
     title = "Laravel IDE Helper",
     timeout = false,
     replace = true,
   })
 
   fn(function()
-    notify(message .. " completed", vim.log.levels.INFO, {
+    vim.notify(message .. " completed", vim.log.levels.INFO, {
       replace = notify_id,
     })
   end)
 end
 
-function M.generate_all()
-  if not is_laravel() then
+local function generate_helper(command_name, with_progress_msg)
+  if not require_laravel("generate") then
     return
   end
 
-  local commands = {
-    "ide-helper:models -N",
-    "ide-helper:generate",
-    "ide-helper:meta",
-  }
+  local command = ARTISAN_GENERATORS[command_name]
+  if not command then
+    vim.notify("Unknown generator: " .. command_name, vim.log.levels.ERROR)
+    return
+  end
+
+  if with_progress_msg then
+    with_progress(with_progress_msg, function(done)
+      execute_artisan(command, function(success)
+        if success then
+          done()
+        end
+      end)
+    end)
+  else
+    execute_artisan(command)
+  end
+end
+
+function M.generate_all()
+  if not require_laravel("generate_all") then
+    return
+  end
 
   local function run_next(index)
-    if index > #commands then
-      notify("All helpers generated", vim.log.levels.INFO)
+    if index > #HELPER_COMMANDS then
+      vim.notify("All helpers generated", vim.log.levels.INFO)
       return
     end
 
-    with_progress("Generating helper " .. index .. "/" .. #commands, function(done)
-      execute_artisan(commands[index], function(success)
+    with_progress("Generating helper " .. index .. "/" .. #HELPER_COMMANDS, function(done)
+      execute_artisan(HELPER_COMMANDS[index], function(success)
         if success then
           done()
           run_next(index + 1)
@@ -89,39 +130,37 @@ function M.generate_all()
 end
 
 function M.generate_models()
-  if not is_laravel() then
-    return
-  end
-  execute_artisan("ide-helper:models -N")
+  generate_helper("models", "Generating models helper")
 end
 
 function M.generate_meta()
-  if not is_laravel() then
-    return
-  end
-  execute_artisan("ide-helper:meta")
+  generate_helper("meta", "Generating meta helper")
 end
 
 function M.generate_facades()
-  if not is_laravel() then
-    return
-  end
-  execute_artisan("ide-helper:generate")
+  generate_helper("facades", "Generating facades helper")
 end
 
 function M.install()
-  if not is_laravel() then
+  if not require_laravel("install") then
     return
   end
-  notify("Installing IDE Helper...")
-  execute_command({
+
+  vim.notify("Installing IDE Helper...")
+
+  local composer_cmd = {
     "composer",
     "require",
-    config.composer_dev and "--dev" or nil,
     "barryvdh/laravel-ide-helper",
-  }, function(success)
+  }
+
+  if config.composer_dev then
+    table.insert(composer_cmd, 2, "--dev")
+  end
+
+  execute_command(composer_cmd, function(success)
     if success then
-      notify("Installing IDE Helper completed", vim.log.levels.INFO)
+      vim.notify("Installing IDE Helper completed", vim.log.levels.INFO)
       M.generate_facades()
       M.generate_models()
     end

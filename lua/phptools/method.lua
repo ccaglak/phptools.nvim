@@ -1,36 +1,29 @@
 local tree = require("phptools.treesitter")
-local api, fn = vim.api, vim.fn
-local buf_request_sync = vim.lsp.buf_request_sync
-local jump_to_location = vim.lsp.util.show_document
+local utils = require("phptools.utils")
 
-local Method = {
-  templates = {
-    default = {
-      "    public function %s()",
-      "    {",
-      "        // TODO: ",
-      "    }",
-    },
-    scoped_call_expression = {
-      "    public static function %s()",
-      "    {",
-      "        // TODO: ",
-      "    }",
-    },
-    class_constant_access_expression = {
-      "    case %s; // TODO: ",
-    },
-  },
-}
+local api, fn = vim.api, vim.fn
+
+local Method = {}
+
+local function get_method_template(template_type)
+  if template_type == "default" then
+    return utils.templates.methods.default
+  elseif template_type == "scoped_call_expression" then
+    return utils.templates.methods.static
+  elseif template_type == "class_constant_access_expression" then
+    return utils.templates.methods.enum_case
+  end
+  return utils.templates.methods.default
+end
 Method.__index = Method
 
-local function make_position_params()
-    return vim.lsp.util.make_position_params(nil, "utf-16")
+function Method:new()
+  return setmetatable({}, { __index = self })
 end
 
 function Method:init()
   self.template = nil
-  self.params = make_position_params()
+  self.params = utils.make_position_params()
   if self.params and self.params.textDocument and self.params.textDocument.uri then
     self.current_file = self.params.textDocument.uri:gsub("file://", "")
   end
@@ -38,21 +31,22 @@ function Method:init()
 end
 
 function Method:run()
-  self:init()
-  if not self.parent or not self.method or not self.variable_or_scope then
+  local instance = self:new()
+  instance:init()
+  if not instance.parent or not instance.method or not instance.variable_or_scope then
     return
   end
 
-  local method_position = self:create_position_params(self.method)
+  local method_position = instance:create_position_params(instance.method)
 
-  if self:find_and_jump_to_definition(method_position) then
+  if instance:find_and_jump_to_definition(method_position) then
     return
   end
 
-  if self.variable_or_scope.text == "this" then
-    self:handle_this_scope()
+  if instance.variable_or_scope.text == "this" then
+    instance:handle_this_scope()
   else
-    self:handle_other_scope()
+    instance:handle_other_scope()
   end
 end
 
@@ -102,9 +96,14 @@ function Method:get_position()
           end
         end
         if not class then
-          local parameter_declaration = tree.find_parent(tree.cursor(), "parameter_declaration")
-          if parameter_declaration then
-            class = tree.children(parameter_declaration.node, "named_type")
+          -- Check for promoted constructor parameters first
+          local parameter = tree.find_parent(tree.cursor(), "property_promotion_parameter")
+          if not parameter then
+            -- Fall back to regular parameters
+            parameter = tree.find_parent(tree.cursor(), "parameter_declaration")
+          end
+          if parameter then
+            class = tree.children(parameter.node, "named_type")
           end
         end
 
@@ -138,30 +137,61 @@ end
 
 function Method:handle_undefined_class()
   _G._filepath_ = nil
-  vim.fn.cursor({ self.variable_or_scope.range[1] + 1, self.variable_or_scope.range[2] + 2 })
+  vim.fn.cursor({ self.variable_or_scope.range[1] + 1, self.variable_or_scope.range[2] + 1 }) -- might create bugs
   require("phptools.class"):run()
   self:await_class_creation()
 end
 
-local function await(cond, after)
-  local timeout = 20000
+
+local function await(cond, after, opts)
+  opts = opts or {}
+  local timeout = opts.timeout or 20000
+  local interval = opts.interval or 200
+
   local timer = vim.uv.new_timer()
+  if not timer then
+    return false
+  end
+
   local elapsed = 0
-  local interval = 200
+  local completed = false
+
+  local function cleanup()
+    if timer and not timer:is_closing() then
+      timer:stop()
+      timer:close()
+    end
+  end
+
   timer:start(
     0,
     interval,
     vim.schedule_wrap(function()
-      if cond() then
-        timer:stop()
-        after()
-      elseif elapsed >= timeout then
-        timer:stop()
-      else
-        elapsed = elapsed + interval
+      if completed then
+        return
       end
+
+      if cond() then
+        completed = true
+        cleanup()
+        local ok, err = pcall(after)
+        if not ok then
+          vim.notify("Error in await callback: " .. tostring(err), vim.log.levels.ERROR)
+        end
+        return
+      end
+
+      if elapsed >= timeout then
+        completed = true
+        cleanup()
+        return
+      end
+
+      elapsed = elapsed + interval
     end)
   )
+
+  return true
 end
 
 function Method:await_class_creation()
@@ -182,7 +212,7 @@ function Method:create_position_params(node)
     return nil
   end
   return {
-    textDocument = make_position_params().textDocument,
+    textDocument = utils.make_position_params().textDocument,
     position = {
       character = node.range[2] + 1,
       line = node.range[1],
@@ -192,26 +222,24 @@ end
 
 function Method:find_and_jump_to_definition(params, methods)
   methods = methods or "textDocument/definition"
-  local results = buf_request_sync(0, methods, params, 1000)
-  if results and not vim.tbl_isempty(results) then
-    for _, result in pairs(results) do
-      if result.result and #result.result > 0 then
-        jump_to_location(result.result[1], "utf-8")
-        return result.result[1]
-      end
-    end
+  local results = utils.query(params, methods, 1000)
+  if results and #results > 0 then
+    utils.jump_to_definition(results[1])
+    return results[1]
   end
   return nil
 end
 
 function Method:generate_method_lines(method_name)
-  local template = self.templates[self.template] or self.templates.default
+  local template = get_method_template(self.template)
   if not template then
     vim.notify("No template found for method generation", vim.log.levels.ERROR)
     return {}
   end
+
+  -- Split template string into lines and format with method_name
   local lines = {}
-  for _, line in ipairs(template) do
+  for line in template:gmatch("[^\n]+") do
     table.insert(lines, string.format(line, method_name))
   end
   return lines
@@ -227,8 +255,6 @@ function Method:add_to_buffer(lines, bufnr)
     return
   end
 
-  fn.bufload(bufnr)
-
   -- Check if method already exists in buffer to prevent duplicates
   if self.method and self.method.text then
     local buffer_content = api.nvim_buf_get_lines(bufnr, 0, -1, false)
@@ -243,12 +269,10 @@ function Method:add_to_buffer(lines, bufnr)
 
   local lastline = api.nvim_buf_line_count(bufnr)
 
-  api.nvim_buf_set_lines(bufnr, lastline - 1, lastline - 1, true, lines)
+  -- Use unified buffer operation utility with save
+  utils.add_lines_to_buffer(bufnr, lines, true, true)
 
   api.nvim_set_current_buf(bufnr)
-  api.nvim_buf_call(bufnr, function()
-    vim.cmd("silent! write! | silent! edit")
-  end)
   fn.cursor({ lastline + #lines, 9 })
 end
 

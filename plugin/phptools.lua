@@ -1,10 +1,12 @@
 local phptools = require("phptools")
 
 local command_map = {
+  Smart = "Smart",
   Method = "Method",
   Class = "Class",
   Namespace = "Namespace",
   GetSet = "GetSet",
+  PropertyHooks = "PropertyHooks",
   Scripts = "Scripts",
   Refactor = "Refactor",
   Create = "Create",
@@ -22,7 +24,7 @@ end
 local function php_command(opts)
   local args = opts.fargs
   if #args == 0 then
-    print("Usage: Php <command> [args...]")
+    vim.notify("Usage: :PhpTools <command>\nAvailable commands: " .. table.concat(vim.tbl_keys(command_map), ", "), vim.log.levels.WARN)
     return
   end
 
@@ -31,7 +33,7 @@ local function php_command(opts)
 
   local success, err = pcall(execute_command, command)
   if not success then
-    vim.api.nvim_err_writeln("PhpTools error: " .. err)
+    vim.notify("PhpTools error: " .. err, vim.log.levels.ERROR)
   end
 end
 
@@ -44,11 +46,4 @@ vim.api.nvim_create_user_command("PhpTools", php_command, {
 
 if not vim.uv then
   vim.uv = vim.loop
-end
-if not vim.lsp.get_clients then -- to be removed v12
-  vim.lsp.get_clients = vim.lsp.get_active_clients
-end
-
-if not vim.lsp.util.show_document then -- to be removed v12
-  vim.lsp.util.show_document = vim.lsp.util.jump_to_location
 end

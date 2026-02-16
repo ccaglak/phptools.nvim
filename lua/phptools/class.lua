@@ -1,7 +1,9 @@
 local tree = require("phptools.treesitter")
 local composer = require("phptools.composer")
+local utils = require("phptools.utils")
 
 local Class = {}
+Class.__index = Class
 
 Class.templates = {
   class_interface_clause = "interface",
@@ -11,17 +13,15 @@ Class.templates = {
   use_declaration = "trait",
   class_constant_access_expression = "enum",
   simple_parameter = "class",
+  property_promotion_parameter = "class",
 }
 
-local function make_position_params()
-  return vim.lsp.util.make_position_params(nil, "utf-16")
-end
-
 function Class:new()
-  return setmetatable({
-    params = make_position_params(),
+  local instance = setmetatable({
+    params = utils.make_position_params(),
     constructor = false,
   }, { __index = self })
+  return instance
 end
 
 function Class:run()
@@ -78,21 +78,6 @@ function Class:find_or_create_class()
 end
 
 -- normalizes path for unix or windows, converts absolute to relative
-local function normalize_path(path)
-  local sep = _G.sep or (vim.uv.os_uname().sysname == "Windows_NT" and "\\" or "/")
-
-  -- Remove leading slashes to make path relative (prevent absolute paths)
-  path = path:gsub("^[\\/]+", "")
-
-  -- Remove trailing slashes
-  path = path:gsub("[\\/]+$", "")
-
-  if path ~= "" then
-    path = path .. sep
-  end
-  path = path:gsub("[\\/]+", sep)
-  return path
-end
 
 function Class:create_new_class()
   if not self.class_name or not self.class_name.text then
@@ -101,30 +86,39 @@ function Class:create_new_class()
   end
 
   local pre_src = composer.get_prefix_and_src()
-  if not pre_src then
-    return
-  end
+  self.has_psr4 = pre_src and #pre_src > 0
 
   -- Build list of available directories from PSR-4 autoload for reference
-  local available_paths = {}
-  for _, entry in ipairs(pre_src) do
-    table.insert(available_paths, entry.src .. " (" .. entry.prefix .. ")")
+  if self.has_psr4 then
+    local available_paths = {}
+    for _, entry in ipairs(pre_src) do
+      table.insert(available_paths, entry.src .. " (" .. entry.prefix .. ")")
+    end
+    vim.notify("Available paths:\n" .. table.concat(available_paths, "\n"), vim.log.levels.INFO)
+  else
+    vim.notify("No PSR-4 autoload configuration found. Creating class without namespace.", vim.log.levels.WARN)
   end
 
-  -- Show available paths as notification
-  if #available_paths > 0 then
-    vim.notify("Available paths:\n" .. table.concat(available_paths, "\n"), vim.log.levels.INFO)
+  local default_dir = vim.fn.expand("%:h")
+  local root = _G.get_php_root() or vim.fn.getcwd()
+  if root and default_dir:find(root, 1, true) == 1 then
+    default_dir = default_dir:sub(#root + 1):gsub("^[/\\]", "")
+  end
+  if default_dir == "" or default_dir == "." then
+    default_dir = ""
   end
 
   vim.ui.input({
     prompt = "Enter directory for " .. self.class_name.text .. ".php: ",
     completion = "dir",
-    default = vim.fn.expand("%:h"),
+    default = default_dir,
   }, function(dir)
     if not dir then
       return
     end
-    self:_create_class_in_directory(normalize_path(dir))
+    -- Remove leading slashes to make path relative (prevent absolute paths)
+    dir = dir:gsub("^[\\/]+", "")
+    self:_create_class_in_directory(utils.normalize_path(dir) .. _G.sep)
   end)
 end
 
@@ -137,11 +131,21 @@ function Class:_create_class_in_directory(dir)
   end
 
   local file_path = dir .. self.class_name.text .. ".php"
-  self.file_ns = composer.resolve_namespace(dir)
-  local current_ns = composer.generate_use_statement(file_path)
 
-  self:add_to_current_buffer({ current_ns })
-  local bufnr = self:get_bufnr(file_path)
+  -- Only generate namespace and use statement if PSR-4 autoload exists
+  if self.has_psr4 then
+    self.file_ns = composer.resolve_namespace(dir)
+    local current_ns = composer.generate_use_statement(file_path)
+    self:add_to_current_buffer({ current_ns })
+  else
+    -- Generate require_once statement when no PSR-4 autoload
+    local require_statement = self:generate_require_once(file_path)
+    if require_statement then
+      self:add_to_current_buffer({ require_statement })
+    end
+  end
+
+  local bufnr = utils.get_or_create_buffer(file_path)
   self:add_template_to_buffer(self:template_builder(), bufnr)
   self:finalize_buffer(bufnr)
   _G._filepath_ = file_path
@@ -165,10 +169,6 @@ function Class:class_position()
   }
 end
 
-function Class:get_bufnr(filename)
-  return vim.fn.bufexists(filename) ~= 0 and vim.fn.bufnr(filename) or vim.fn.bufadd(filename)
-end
-
 function Class:add_template_to_buffer(lines, bufnr)
   if vim.api.nvim_buf_is_valid(bufnr) then
     vim.fn.bufload(bufnr)
@@ -183,7 +183,8 @@ function Class:add_template_to_buffer(lines, bufnr)
 end
 
 function Class:add_to_current_buffer(lines)
-  vim.api.nvim_buf_set_lines(0, self:get_insertion_point(), self:get_insertion_point(), true, lines)
+  local insertion_point = utils.get_insertion_point()
+  vim.api.nvim_buf_set_lines(0, insertion_point, insertion_point, true, lines)
 end
 
 function Class:get_parent()
@@ -195,6 +196,7 @@ function Class:get_parent()
     "class_constant_access_expression",
     "scoped_call_expression",
     "simple_parameter",
+    "property_promotion_parameter",
   }) do
     local parent = tree.parent(type)
     if parent and parent.type == type then
@@ -213,37 +215,32 @@ function Class:template_builder()
     "<?php",
     "",
     "declare(strict_types=1);",
-    "",
-    self.file_ns,
-    "",
-    template .. " " .. self.class_name.text,
-    "{",
-    self.constructor and "    public function __construct()\n    {\n        //\n    }" or "    //",
-    "}",
   }
+
+  -- Only include namespace if PSR-4 autoload was found
+  if self.file_ns then
+    table.insert(tmpl, "")
+    table.insert(tmpl, self.file_ns)
+  end
+
+  table.insert(tmpl, "")
+  table.insert(tmpl, template .. " " .. self.class_name.text)
+  table.insert(tmpl, "{")
+  table.insert(tmpl, self.constructor and "    public function __construct()\n    {\n        //\n    }" or "    //")
+  table.insert(tmpl, "}")
+
   return tmpl
 end
 
-function Class:get_location(params, method)
-  local results = vim.lsp.buf_request_sync(0, method, params, 1000)
-  return results and results[1] and results[1].result
+function Class:generate_require_once(file_path)
+  local relative_path = vim.fn.fnamemodify(file_path, ":.")
+  relative_path = relative_path:gsub("\\", "/")
+
+  return string.format("require_once __DIR__ . '/%s';", relative_path)
 end
 
-function Class:get_insertion_point()
-  local content = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-  local insertion_point = 2
-
-  for i, line in ipairs(content) do
-    if vim.fn.match(line, "^\\(declare\\)") >= 0 then
-      insertion_point = i
-    elseif vim.fn.match(line, "^\\(namespace\\)") >= 0 then
-      return i, vim.fn.match(line, "^\\(namespace\\)")
-    elseif vim.fn.match(line, "^\\(use\\|class\\|final\\|interface\\|abstract\\|trait\\|enum\\)") >= 0 then
-      return insertion_point
-    end
-  end
-
-  return insertion_point, nil
+function Class:get_location(params, method)
+  return utils.query(params, method, 1000)
 end
 
 return Class

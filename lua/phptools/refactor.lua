@@ -1,112 +1,174 @@
+local utils = require("phptools.utils")
+
 local M = {}
 
-local templates = {
-  ["if"] = "if (%s) {\n%s\n}",
-  ["foreach"] = "foreach (%s as %s) {\n%s\n}",
-  ["for"] = "for (%s; %s; %s) {\n%s\n}",
-  ["while"] = "while (%s) {\n%s\n}",
-  ["do_while"] = "do {\n%s\n} while (%s);",
-  ["try_catch"] = "try {\n%s\n} catch (Exception $e) {\n%s\n}",
-  ["function"] = "function %s(%s)\n{\n%s\n}",
-  ["method"] = "public function %s(%s)\n{\n%s\n}",
-}
+-- Reference to consolidated templates (kept for backward compatibility in tests)
+M.templates = vim.tbl_extend("force", {}, utils.templates.control_structures, utils.templates.definitions)
 
-local get_visual_selection = function()
+function M.get_visual_selection()
   vim.cmd('noau normal! "vy"')
   local text = vim.fn.getreg("v")
   vim.fn.setreg("v", {})
-  -- text = string.gsub(tostring(text), "\n", "") -- removes newlines
-  if #text > 0 then
-    return text
-  else
-    return ""
-  end
+  return text or ""
 end
 
-local function smart_indent(code)
-  local indent, indent_char = "    ", "\t"
-  local indent_size = #indent_char == 1 and vim.bo.shiftwidth or #indent_char
+function M.smart_indent(code)
+  if not code or #code == 0 then
+    return ""
+  end
+
+  -- Get the proper indent character and size from buffer settings
+  local indent_char = vim.bo.expandtab and "  " or "\t"
+  local indent_size = vim.bo.shiftwidth > 0 and vim.bo.shiftwidth or 2
+  local indent = string.rep(indent_char, indent_size)
 
   local buffer = {}
   for _, line in ipairs(vim.split(code, "\n", true)) do
-    local line_indent = "    "
-    local new_indent = string.rep(indent_char, math.floor(#line_indent / indent_size))
-    table.insert(buffer, indent .. new_indent .. line:gsub("^%s+", ""))
+    -- Skip empty lines
+    if line:match("%S") then
+      -- Remove leading whitespace and add new indent
+      local trimmed = line:gsub("^%s+", "")
+      table.insert(buffer, indent .. trimmed)
+    else
+      table.insert(buffer, "")
+    end
   end
   return table.concat(buffer, "\n")
 end
 
-local function surround_code(structure, code)
-  local indented_code = smart_indent(code)
+function M.surround_code(structure, code)
+  if not structure or not M.templates[structure] then
+    vim.notify("Invalid structure: " .. tostring(structure), vim.log.levels.ERROR)
+    return nil
+  end
+
+  if not code or #code == 0 then
+    vim.notify("No code selected", vim.log.levels.WARN)
+    return nil
+  end
+
+  local indented_code = M.smart_indent(code)
   local result
 
+  -- Helper to get and validate user input
+  local function get_required_input(prompt)
+    local value = vim.fn.input(prompt)
+    if not value or #value == 0 then
+      vim.notify("Cancelled: " .. prompt, vim.log.levels.WARN)
+      return nil
+    end
+    return value
+  end
+
   if structure == "function" or structure == "method" then
-    local func_name = vim.fn.input("Enter " .. structure .. " name: ")
-    local params = vim.fn.input("Enter " .. structure .. " parameters: ")
-    result = string.format(templates[structure], func_name, params, indented_code)
+    local func_name = get_required_input("Enter " .. structure .. " name: ")
+    if not func_name then return nil end
+    local params = vim.fn.input("Enter " .. structure .. " parameters (optional): ")
+    result = string.format(M.templates[structure], func_name, params or "", indented_code)
   elseif structure == "foreach" then
-    local item_name = vim.fn.input("Enter item variable name: ")
-    local items_name = vim.fn.input("Enter items array name: ")
-    result = string.format(templates[structure], items_name, item_name, indented_code)
+    local items_name = get_required_input("Enter items array name: ")
+    if not items_name then return nil end
+    local item_name = get_required_input("Enter item variable name: ")
+    if not item_name then return nil end
+    result = string.format(M.templates[structure], items_name, item_name, indented_code)
   elseif structure == "for" then
-    local init = vim.fn.input("Enter initialization: ")
-    local condition = vim.fn.input("Enter condition: ")
-    local increment = vim.fn.input("Enter increment: ")
-    result = string.format(templates[structure], init, condition, increment, indented_code)
+    local init = get_required_input("Enter initialization: ")
+    if not init then return nil end
+    local condition = get_required_input("Enter condition: ")
+    if not condition then return nil end
+    local increment = get_required_input("Enter increment: ")
+    if not increment then return nil end
+    result = string.format(M.templates[structure], init, condition, increment, indented_code)
   elseif structure == "do_while" then
-    local condition = vim.fn.input("Enter condition: ")
-    result = string.format(templates[structure], indented_code, condition)
+    local condition = get_required_input("Enter condition: ")
+    if not condition then return nil end
+    result = string.format(M.templates[structure], indented_code, condition)
+  elseif structure == "try_catch" then
+    local catch_code = vim.fn.input("Enter catch block code (or leave empty): ")
+    result = string.format(M.templates[structure], indented_code, catch_code or "// TODO: Handle exception")
   else
-    local condition = vim.fn.input("Enter condition: ")
-    result = string.format(templates[structure], condition, indented_code)
+    local condition = get_required_input("Enter condition: ")
+    if not condition then return nil end
+    result = string.format(M.templates[structure], condition, indented_code)
   end
 
   return result
 end
 
 function M.refactor()
-  local structures = vim.tbl_keys(templates)
-  local code = get_visual_selection()
+  -- Validate buffer is modifiable
+  if vim.bo.modifiable == false then
+    vim.notify("Buffer is not modifiable", vim.log.levels.ERROR)
+    return
+  end
+
+  local structures = vim.tbl_keys(M.templates)
+  if not structures or #structures == 0 then
+    vim.notify("No structures available", vim.log.levels.ERROR)
+    return
+  end
+
+  -- Get visual selection and marks BEFORE the async call
+  local code = M.get_visual_selection()
+  local start_line = vim.fn.line("'<") - 1
+  local start_col = vim.fn.col("'<") - 1
+  local end_line = vim.fn.line("'>") - 1
+  local end_col = vim.fn.col("'>")
+
+  if not code or #code == 0 then
+    vim.notify("No text selected", vim.log.levels.WARN)
+    return
+  end
+
   vim.schedule(function()
     vim.ui.select(structures, {
       prompt = "Select structure to surround with:",
     }, function(choice)
-      if choice then
-        if code ~= "" then
-          local surrounded_code = surround_code(choice, code)
+      if not choice then
+        return
+      end
 
-          if choice == "function" or choice == "method" then
-            vim.cmd([['<,'>delete]])
-            local lines = vim.split(surrounded_code, "\n", true)
-            local last_line = vim.api.nvim_buf_line_count(0)
-            if choice == "method" then
-              last_line = last_line - 1
-            end
-            vim.api.nvim_buf_set_lines(0, last_line, last_line, false, lines)
+      local surrounded_code = M.surround_code(choice, code)
+      if not surrounded_code then
+        return
+      end
 
-            -- Move cursor to the created function
-            vim.api.nvim_win_set_cursor(0, { last_line + 1, 0 })
-            vim.api.nvim_buf_call(0, function()
-              vim.cmd("silent! write! | edit")
-            end)
-          else
-            local end_line = vim.fn.line("'>") - 1
-            local end_col = math.min(vim.fn.col("'>"), #vim.api.nvim_buf_get_lines(0, end_line, end_line + 1, true)[1])
-            vim.api.nvim_buf_set_text(
-              0,
-              vim.fn.line("'<") - 1,
-              vim.fn.col("'<") - 1,
-              end_line,
-              end_col,
-              vim.split(surrounded_code, "\n", true)
-            )
-            vim.api.nvim_buf_call(0, function()
-              vim.cmd("silent! write! | edit")
-            end)
-          end
-        else
-          vim.api.nvim_err_writeln("No text selected")
+      local lines = vim.split(surrounded_code, "\n", true)
+
+      if choice == "function" or choice == "method" then
+        -- Delete selected lines
+        vim.api.nvim_buf_set_lines(0, start_line, end_line + 1, false, {})
+
+        -- Insert at end of buffer
+        local last_line = vim.api.nvim_buf_line_count(0)
+        if choice == "method" then
+          last_line = math.max(0, last_line - 1)
         end
+
+        vim.api.nvim_buf_set_lines(0, last_line, last_line, false, lines)
+
+        -- Move cursor to the created function
+        vim.api.nvim_win_set_cursor(0, { last_line + 1, 0 })
+        vim.api.nvim_buf_call(0, function()
+          vim.cmd("silent! write! | edit")
+        end)
+      else
+        -- Replace selected text inline
+        local line_content = vim.api.nvim_buf_get_lines(0, end_line, end_line + 1, true)[1] or ""
+        local safe_end_col = math.min(end_col, #line_content)
+
+        vim.api.nvim_buf_set_text(
+          0,
+          start_line,
+          start_col,
+          end_line,
+          safe_end_col,
+          lines
+        )
+
+        vim.api.nvim_buf_call(0, function()
+          vim.cmd("silent! write! | edit")
+        end)
       end
     end)
   end)
