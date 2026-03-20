@@ -105,7 +105,7 @@ function Class:create_new_class()
     default_dir = default_dir:sub(#root + 1):gsub("^[/\\]", "")
   end
   if default_dir == "" or default_dir == "." then
-    default_dir = ""
+    default_dir = (self.has_psr4 and pre_src[1]) and pre_src[1].src or ""
   end
 
   vim.ui.input({
