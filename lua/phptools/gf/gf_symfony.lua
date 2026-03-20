@@ -17,7 +17,7 @@ local PATTERNS = {
   service_ref = "service%s*%(%s*['\"]([a-z_][a-z0-9._]*)['\"]%s*%)",
 
   -- Entity reference: find('App\Entity\User')
-  entity_class = "(?:find|getRepository)%s*%(%s*['\"]([^'\"]+)['\"]",
+  entity_class = "find%s*%(%s*['\"]([^'\"]+)['\"]",
 }
 
 local DIRECTORIES = {
@@ -163,7 +163,8 @@ function M.detect_symfony_reference()
   end
 
   -- Try entity classes
-  local entity_ref = line:match('(?:Entity\\|getRepository|find)%s*%(%s*[\'"]([^\'"]+)[\'"]')
+  local entity_ref = line:match('find%s*%(%s*[\'"]([^\'"]+)[\'"]')
+    or line:match('getRepository%s*%(%s*[\'"]([^\'"]+)[\'"]')
   if entity_ref then
     return entity_ref
   end

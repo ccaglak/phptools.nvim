@@ -2,7 +2,6 @@
 -- Handles browsing and navigation to Laravel routes
 
 local M = {}
-local ui = require("phptools.ui")
 local gf_utils = require("phptools.gf.gf_utils")
 local np = gf_utils.normalize_path
 
@@ -112,7 +111,7 @@ function M.browse()
   for _, route in ipairs(routes) do
     table.insert(displays, route.display)
   end
-  ui.norm_select(displays, "Browse routes: ", function(choice)
+  vim.ui.select(displays, { prompt = "Browse routes: " }, function(choice)
     for _, route in ipairs(routes) do
       if route.display == choice then
         local controller, method = M.parse_controller_action(route.action)

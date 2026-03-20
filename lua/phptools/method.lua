@@ -52,6 +52,9 @@ end
 
 function Method:get_position()
   local cnode = tree.cnode()
+  if not cnode or not cnode.node then
+    return nil
+  end
   local node = cnode.node:parent()
   local node_type = node:type()
 
@@ -66,6 +69,9 @@ function Method:get_position()
     if object then
       if object.node:type() == "parenthesized_expression" then
         local object_creation = tree.children(object.node, "object_creation_expression")
+        if object_creation == nil then
+          return
+        end
         return object.node, cnode, tree.children(object_creation.node, "name")
       end
 

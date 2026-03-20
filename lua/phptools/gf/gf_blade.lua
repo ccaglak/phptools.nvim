@@ -2,7 +2,6 @@
 -- Handles Blade directives, components, sections, and template navigation
 
 local M = {}
-local ui = require("phptools.ui")
 local utils = require("phptools.utils")
 local gf_utils = require("phptools.gf.gf_utils")
 local np = gf_utils.normalize_path
@@ -93,7 +92,7 @@ function M.browse_components()
     gf_utils.notify_warn("No Blade components found")
     return
   end
-  ui.norm_select(components, "Browse Blade components: ", function(choice)
+  vim.ui.select(components, { prompt = "Browse Blade components: " }, function(choice)
     local paths = M.get_paths()
     local file = np(paths.components .. "/" .. choice .. ".blade.php")
     if vim.fn.filereadable(file) == 1 then
@@ -169,7 +168,7 @@ function M._toBlade(txt)
     for _, f in ipairs(found_files) do
       table.insert(display_files, rp(f))
     end
-    ui.norm_select(display_files, "Multiple Blade files found: ", function(choice)
+    vim.ui.select(display_files, { prompt = "Multiple Blade files found: " }, function(choice)
       local root = gf_utils.get_project_root() or vim.fn.getcwd()
       vim.cmd("edit " .. np(root .. "/" .. choice))
     end)
@@ -214,7 +213,7 @@ function M.to_section(section_name)
     for _, r in ipairs(results) do
       table.insert(display_results, rp(r))
     end
-    ui.norm_select(display_results, "Select section: ", function(choice)
+    vim.ui.select(display_results, { prompt = "Select section: " }, function(choice)
       if choice then
         local root = gf_utils.get_project_root() or vim.fn.getcwd()
         vim.cmd("edit " .. np(root .. "/" .. choice))

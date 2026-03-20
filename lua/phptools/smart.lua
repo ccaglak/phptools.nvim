@@ -76,7 +76,7 @@ Heuristics:
 ]]
 local function analyze_ambiguous(node)
   -- Check for method call parentheses
-  if node.text:match("()$") then
+  if node.text:match("%(%)$") then
     return "method"
   end
 

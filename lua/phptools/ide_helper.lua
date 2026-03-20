@@ -1,5 +1,4 @@
 local M = {}
-local ui = require("phptools.ui")
 
 -- Default configuration
 local config = {
@@ -155,7 +154,7 @@ function M.install()
   }
 
   if config.composer_dev then
-    table.insert(composer_cmd, 2, "--dev")
+    table.insert(composer_cmd, 3, "--dev")
   end
 
   execute_command(composer_cmd, function(success)

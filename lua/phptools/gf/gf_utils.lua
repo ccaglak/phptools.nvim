@@ -2,7 +2,6 @@
 -- Provides common patterns for file search, navigation, and notifications
 
 local M = {}
-local ui = require("phptools.ui")
 local utils = require("phptools.utils")
 
 -- ============================================================================
@@ -287,11 +286,11 @@ function M.detect_php_class_name()
 
   -- Match fully qualified class names: Namespace\Class or App\Controller\ClassName
   -- Supports escaped backslashes (\\) and regular backslashes (\)
-  local class_name = line:match("([A-Z][A-Za-z0-9]*(?:\\\\[A-Z][A-Za-z0-9]*)+)")
+  local class_name = line:match("([A-Z][A-Za-z0-9]*\\\\[A-Z][A-Za-z0-9\\]*)")
 
   if not class_name then
     -- Try with regular backslashes
-    class_name = line:match("([A-Z][A-Za-z0-9]*(?:\\[A-Z][A-Za-z0-9]*)+)")
+    class_name = line:match("([A-Z][A-Za-z0-9]*\\[A-Z][A-Za-z0-9\\]*)")
   end
 
   if not class_name then

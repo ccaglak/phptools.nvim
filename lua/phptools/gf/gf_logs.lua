@@ -2,7 +2,6 @@
 -- Handles finding, browsing, and tailing Laravel log files
 
 local M = {}
-local ui = require("phptools.ui")
 local gf_utils = require("phptools.gf.gf_utils")
 local np = gf_utils.normalize_path
 
@@ -68,7 +67,7 @@ function M.browse()
     local size_mb = string.format("%.2f MB", log.size / 1024 / 1024)
     table.insert(displays, string.format("%s (%s)", log.name, size_mb))
   end
-  ui.norm_select(displays, "Browse logs: ", function(choice)
+  vim.ui.select(displays, { prompt = "Browse logs: " }, function(choice)
     for _, log in ipairs(log_files) do
       local display = string.format("%s (%.2f MB)", log.name, log.size / 1024 / 1024)
       if display == choice then

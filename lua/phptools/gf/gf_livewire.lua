@@ -2,7 +2,6 @@
 -- Handles Livewire component discovery and component/view toggling
 
 local M = {}
-local ui = require("phptools.ui")
 local gf_utils = require("phptools.gf.gf_utils")
 local np = gf_utils.normalize_path
 
@@ -43,7 +42,7 @@ function M.browse_components()
     gf_utils.notify_warn("No Livewire components found")
     return
   end
-  ui.norm_select(components, "Browse Livewire components: ", function(choice)
+  vim.ui.select(components, { prompt = "Browse Livewire components: " }, function(choice)
     local paths = M.get_paths()
     local file = np(paths.components .. "/" .. choice .. ".php")
     if vim.fn.filereadable(file) == 1 then

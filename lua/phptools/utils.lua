@@ -105,7 +105,7 @@ function M.get_insertion_point()
       insertion_point = i
     elseif line:match("^namespace") then
       return i, 0
-    elseif line:match("^%(use|class|final|interface|abstract|trait|enum)") then
+    elseif line:match("^use%s") or line:match("^class%s") or line:match("^final%s") or line:match("^interface%s") or line:match("^abstract%s") or line:match("^trait%s") or line:match("^enum%s") then
       return insertion_point
     end
   end
@@ -240,8 +240,7 @@ function M.select_from_results(search_results, prompt_title, callback)
 
   -- Multiple results - prompt user
   vim.schedule(function()
-    local ui = require("phptools.ui")
-    ui.norm_select(search_results, {
+    vim.ui.select(search_results, {
       prompt = prompt_title or "Select file: ",
     }, function(item)
       if item then

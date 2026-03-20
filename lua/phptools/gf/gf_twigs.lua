@@ -21,10 +21,10 @@ local PATTERNS = {
 
   -- relative_path() function: relative_path('http://example.com/assets/app.css')
   -- Extracts full path from URL: /assets/app.css
-  relative_path = [[relative_path%s*%(%s*['"](https?://[^/]+(/[^'"]*))['"]\s*%)]],
+  relative_path = [[relative_path%s*%(%s*['"]https?://[^/]+(/[^'"]*)['"]%s*%)]],
 
   -- File paths in twig filters: {{ '/path/to/file.txt'|filter_name(...) }}
-  file_in_filter = [[['"]([^'"]+\.(?:txt|php|js|css|html|md|json|yaml|xml))['"]%s*\|]],
+  file_in_filter = [[['"]([^'"]+%.[a-z]+)['"]%s*|]],
 }
 
 local DIRECTORIES = {
