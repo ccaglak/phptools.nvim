@@ -120,16 +120,11 @@ function Smart:run()
 
   local context_type = self:detect_context(node)
 
-  -- Pass node to avoid redundant tree traversal
-  _G._smart_detected_node = node
-
   if context_type == "class" then
-    require("phptools.class"):new():run()
+    require("phptools.class"):run()
   else
-    require("phptools.method"):new():run()
+    require("phptools.method"):run()
   end
-
-  _G._smart_detected_node = nil
 end
 
 return Smart
