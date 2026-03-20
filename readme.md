@@ -4,6 +4,7 @@ Elevate your PHP development in Neovim with PhpTools - bringing you one step clo
 
 ## Features
 
+- **Smart context detection** - Automatically detects method or class context and dispatches accordingly
 - Generate undefined methods
 - Create classes, traits, interfaces, and enums with proper namespacing, including `use` statements
 - Run Composer scripts
@@ -19,6 +20,15 @@ Elevate your PHP development in Neovim with PhpTools - bringing you one step clo
 - Laravel, Symfony, Twig compatible
 
 ## Detailed Usage
+
+### PhpSmart
+
+Command: `:PhpTools Smart`
+
+Context-aware dispatcher that detects whether the cursor is in a method call or class reference, then routes to the appropriate generator. Walks the AST from cursor position to determine context:
+- `$obj->method()`, `Class::method()` → runs Method generator
+- `new Class`, `extends`, `implements`, `use Trait` → runs Class generator
+- Ambiguous cases (`Class::something`) → checks for `()` (method) or ALL_CAPS name (class/enum)
 
 ### PhpMethod
 
@@ -80,8 +90,6 @@ Works with any PHP project:
 - Enum
 - Trait
 - Abstract class
-- Pure PHP script (ps)
-- Pure PHP script with autoloader (psa)
 
 #### Laravel Smart Templates
 
@@ -130,21 +138,6 @@ class UserListener implements ShouldQueue {
 }
 ```
 
-**Seeders** - Created in `database/seeders/` or filename contains `Seeder`
-```php
-class UserSeeder extends Seeder {
-    public function run(): void { }
-}
-```
-
-**Migrations** - Created in `database/migrations/`
-```php
-return new class extends Migration {
-    public function up(): void { }
-    public function down(): void { }
-};
-```
-
 #### How It Works
 
 1. Open a new file in your Laravel project directory
@@ -157,22 +150,25 @@ return new class extends Migration {
 
 Command: `:PhpTools PropertyHooks`
 
-Generate PHP 8.4 property hooks with support for simple, validated, virtual, and lazy-loaded properties.
+Generate PHP 8.4 property hooks for typed properties. Place cursor on a property declaration and select a hook type.
 
 #### Quick Start
 
-**On an existing property:**
 ```php
 public string $email;  // Place cursor here
 ```
-Run `:PhpTools PropertyHooks` → Select generation mode → Select hook type → Done!
-
-**On an empty line:**
-Run `:PhpTools PropertyHooks` → Enter property name → Enter type hint → Select hook type → Done!
+Run `:PhpTools PropertyHooks` → Select hook type → Done!
 
 #### Hook Types
 
-**1. Simple Hooks** - Basic get/set with optional visibility control
+**1. Simple Hooks** - Basic get/set
+
+Before:
+```php
+public string $email;
+```
+
+After running `:PhpTools PropertyHooks` → `Simple`:
 ```php
 public string $email {
     get => $this->email;
@@ -180,15 +176,30 @@ public string $email {
 }
 ```
 
-With visibility modifiers:
+**2. Validated Hooks** - With custom or type-based validation
+
+Before:
 ```php
-public string $email {
-    get => $this->email;
-    private set(string $value) => $this->email = $value;
+public MyClass $handler;
+```
+
+After running `:PhpTools PropertyHooks` → `Validated` → leave prompt empty (basic type validation):
+```php
+public MyClass $handler {
+    get => $this->handler;
+    set(MyClass $value) {
+        if (!is_a($value, MyClass::class)) throw new \TypeError('Expected MyClass');
+        $this->handler = $value;
+    }
 }
 ```
 
-**2. Validated Hooks** - With built-in or custom validation
+Before:
+```php
+public string $email;
+```
+
+After running `:PhpTools PropertyHooks` → `Validated` → enter `if (!filter_var($value, FILTER_VALIDATE_EMAIL)) throw new \InvalidArgumentException('Invalid email');`:
 ```php
 public string $email {
     get => $this->email;
@@ -199,60 +210,6 @@ public string $email {
 }
 ```
 
-**3. Virtual Hooks** - Computed properties without backing field
-```php
-public string $fullName {
-    get => $this->first . ' ' . $this->last;
-}
-```
-
-**4. Lazy Hooks** - Lazy initialization with `??=` operator
-```php
-public Repository $repo {
-    get => $this->repo ??= new Repository();
-}
-```
-
-#### Validation Templates
-
-Built-in templates include:
-- String Length
-- Positive Number
-- Range
-- Email
-- URL
-- Non-null
-- Custom
-
-#### Custom Templates
-
-Add custom validation templates in your setup:
-
-```lua
-require('phptools').setup({
-  property_hooks = {
-    enable = true,
-    custom_templates = {
-      ["Min Length"] = "if (strlen($value) < 3) throw new \\InvalidArgumentException('Minimum 3 characters');",
-      ["Alphanumeric"] = "if (!ctype_alnum($value)) throw new \\InvalidArgumentException('Alphanumeric only');",
-      ["UUID"] = "if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $value)) throw new \\InvalidArgumentException('Invalid UUID');",
-    },
-  },
-})
-```
-
-#### Workflow
-
-**Step 1:** Generation Mode
-- Single Property (one at a time)
-- Batch (multiple properties)
-
-**Step 2:** Hook Type
-- Simple (basic get/set)
-- Validated (with validation logic)
-- Virtual (computed property)
-- Lazy (lazy initialization)
-
 ### Smart GF
 
 Press `gf` to navigate to the file under cursor. The plugin overrides Vim's native `gf` with context-aware navigation that understands PHP, Laravel, Symfony, and Twig. Falls back to default `gf` when no match is found.
@@ -262,7 +219,7 @@ Press `gf` to navigate to the file under cursor. The plugin overrides Vim's nati
 | Context | Example | Navigates to |
 |---------|---------|-------------|
 | Constants | `require CONST_PATH . '/file.php'` | Resolved constant path |
-| Environment | `require env('APP_PATH') . '/file.php'` | `.env` variable value |
+| Environment | `require env('APP_PATH') . '/file.php'`, `getenv('APP_PATH')` | `.env` variable value |
 | `__DIR__` | `require __DIR__ . '/config.php'` | Relative to current file |
 | Array access | `require $files[0]` | Resolved array element |
 | Class constants | `require Config::BASE_PATH . '/file'` | Resolved class constant |
@@ -271,7 +228,7 @@ Press `gf` to navigate to the file under cursor. The plugin overrides Vim's nati
 | Middleware | `->middleware('auth')` | Middleware class |
 | Locales | `__('messages.welcome')` | Locale file |
 | Assets | `asset('css/app.css')`, `src="..."` | Asset file |
-| Functions | `helper_function()` | Function definition |
+| Functions | `helper_function()` | Function definition (project-wide search, `vendor/` as last resort) |
 | Inertia | `inertia('Pages/Dashboard')`, `Inertia::render(...)` | JS/Vue/React component |
 | Services | `@service_name` (Symfony) | Service class |
 | Entities | `getRepository('User')` (Symfony) | Entity class |
@@ -349,7 +306,7 @@ PhpTools.nvim includes a powerful toggle feature that enhances your PHP developm
      - `public` <-> `protected` <-> `private`
      - `self` <-> `static`
      - `true` <-> `false`
-     - `require` <-> `include`
+     - `require` <-> `require_once` <-> `include`
      - `abstract` <-> `final`
      - `class` <-> `interface` <-> `trait` <-> `enum`
      - `string` <-> `int` <-> `float` <-> `bool` <-> `array`
@@ -435,12 +392,6 @@ PhpTools.nvim provides comprehensive test running capabilities for PHP projects 
 
 https://github.com/user-attachments/assets/61828e80-f165-4cc0-bc90-414d5401eacc
 
-#### Features
-
-- Automatically scans contributed modules directory
-- Updates PSR-4 autoload configurations
-- Watches for changes in composer.json and autoload files
-
 ### Laravel IDE Helper Integration
 
 PhpTools.nvim includes built-in support for Laravel IDE Helper.
@@ -461,6 +412,7 @@ PhpTools.nvim includes built-in support for Laravel IDE Helper.
 {
     'ccaglak/phptools.nvim',
     keys = {
+        { "<leader>ll", "<cmd>PhpTools Smart<cr>", desc = "Smart detect (method or class)" },
         { "<leader>lm", "<cmd>PhpTools Method<cr>", desc = "Generate method" },
         { "<leader>lc", "<cmd>PhpTools Class<cr>", desc = "Generate class" },
         { "<leader>ls", "<cmd>PhpTools Scripts<cr>", desc = "Run Composer scripts" },
@@ -476,33 +428,43 @@ PhpTools.nvim includes built-in support for Laravel IDE Helper.
     config = function()
       require('phptools').setup({
         ui = {
-          enable = true, -- custom UI for selects and input
-          fzf = false,   -- use fzf for tests if available
+          enable = true,      -- replace vim.ui.select, vim.ui.input, vim.notify with custom floating windows
+          fzf = false,        -- use fzf for test filtering if available
         },
         custom_toggles = {
-          enable = false, -- enable custom word/operator toggles
+          enable = false,     -- enable <C-a>/<C-x> word/operator toggles
+          -- Built-in word groups:
+          --   { "public", "protected", "private" },
+          --   { "self", "static" },
+          --   { "true", "false" },
+          --   { "require", "require_once", "include" },
+          --   { "abstract", "final" },
+          --   { "class", "interface", "trait", "enum" },
+          --   { "string", "int", "float", "bool", "array" },
+          -- Built-in operator pairs:
+          --   == <-> ===, != <-> !==, > <-> >=, < <-> <=,
+          --   && <-> ||, ++ <-> --, -> <-> =>
+          -- Add custom word groups to extend defaults:
+          -- custom_toggles = { { "yes", "no" }, { "on", "off" } },
         },
         gf = {
-          enable = true, -- smart gf navigation
-          keymaps = {    -- set false to disable any keymap
-            gf = "gf",
-            browse_components = "<leader>gC",
-            browse_livewire = "<leader>gw",
-            toggle_livewire = "<leader>gW",
-            browse_routes = "<leader>gr",
-            browse_logs = "<leader>gl",
-            tail_logs = "<leader>gL",
+          enable = true,      -- smart gf navigation for PHP, Blade, Twig
+          max_depth = 5,      -- max recursion depth for constant resolution
+          project_root_markers = { ".git", "composer.json", ".env" },
+          excluded_dirs = { "vendor", "node_modules", ".git" },
+          custom_constants = {},  -- user-defined constants, e.g. { MY_CONST = "/path/to/dir" }
+          keymaps = {         -- set any to false to disable
+            gf = "gf",                          -- context-aware goto file
+            browse_components = "<leader>gC",   -- list all Blade components
+            browse_livewire = "<leader>gw",     -- list all Livewire components
+            toggle_livewire = "<leader>gW",     -- switch between Livewire class and Blade view
+            browse_routes = "<leader>gr",       -- list Laravel routes and jump to controller
+            browse_logs = "<leader>gl",         -- list and open log files
+            tail_logs = "<leader>gL",           -- tail -f laravel.log in a terminal tab
           },
-        },
-        larago = {
-          enable = true, -- Laravel Blade navigation
         },
         property_hooks = {
-          enable = true, -- PHP 8.4 property hooks
-          custom_templates = {
-            -- Add your custom validation templates here
-            -- ["Template Name"] = "validation code",
-          },
+          enable = true,      -- PHP 8.4 property hooks generation
         },
       })
 
@@ -514,12 +476,17 @@ PhpTools.nvim includes built-in support for Laravel IDE Helper.
       map('n', '<leader>lha', ide_helper.generate_all, { desc = 'Generate all IDE helpers' })
       map('n', '<leader>lhm', ide_helper.generate_models, { desc = 'Generate model helpers' })
       map('n', '<leader>lhf', ide_helper.generate_facades, { desc = 'Generate facade helpers' })
+      map('n', '<leader>lht', ide_helper.generate_meta, { desc = 'Generate meta helper' })
+      map('n', '<leader>lhi', ide_helper.install, { desc = 'Install IDE Helper package' })
 
       -- Test runner commands
       map("n", "<Leader>ta", tests.test.all, { desc = "Run all tests" })
       map("n", "<Leader>tf", tests.test.file, { desc = "Run file tests" })
       map("n", "<Leader>tl", tests.test.line, { desc = "Run test at cursor" })
-      map("n", "<Leader>ts", tests.test.filter, { desc = "Search tests" })
+      map("n", "<Leader>ts", tests.test.filter, { desc = "Search and run test" })
+      map("n", "<Leader>tp", tests.test.parallel, { desc = "Run tests in parallel" })
+      map("n", "<Leader>tr", tests.test.rerun, { desc = "Rerun last test" })
+      map("n", "<Leader>ti", tests.test.selected, { desc = "Run selected test file" })
     end
 }
 ```
@@ -540,15 +507,21 @@ git clone https://github.com/ccaglak/phptools.nvim.git
 -- ~/.config/nvim/init.lua
 require('phptools').setup({
   ui = {
-    enable = true,      -- custom UI for selects and input
-    fzf = false,        -- use fzf for tests if available
+    enable = true,      -- replace vim.ui.select, vim.ui.input, vim.notify with custom floating windows
+    fzf = false,        -- use fzf for test filtering if available
   },
   custom_toggles = {
-    enable = false,     -- enable custom word/operator toggles
+    enable = false,     -- enable <C-a>/<C-x> word/operator toggles
+    -- words = {},      -- additional word toggle groups, e.g. { { "yes", "no" } }
+    -- operators = {},  -- additional operator pairs, e.g. { { "&&", "||" } }
   },
   gf = {
-    enable = true,      -- smart gf navigation
-    keymaps = {         -- set false to disable any keymap
+    enable = true,      -- smart gf navigation for PHP, Blade, Twig
+    max_depth = 5,      -- max recursion depth for constant resolution
+    project_root_markers = { ".git", "composer.json", ".env" },
+    excluded_dirs = { "vendor", "node_modules", ".git" },
+    custom_constants = {},  -- user-defined constants, e.g. { MY_CONST = "/path/to/dir" }
+    keymaps = {         -- set any to false to disable
       gf = "gf",
       browse_components = "<leader>gC",
       browse_livewire = "<leader>gw",
@@ -558,21 +531,15 @@ require('phptools').setup({
       tail_logs = "<leader>gL",
     },
   },
-  larago = {
-    enable = true,      -- Laravel Blade navigation
-  },
   property_hooks = {
-    enable = true,      -- PHP 8.4 property hooks
-    custom_templates = {
-      -- Add your custom validation templates here
-      -- ["Template Name"] = "validation code",
-    },
+    enable = true,      -- PHP 8.4 property hooks generation
   },
 })
 
 local map = vim.keymap.set
 
 -- PhpTools code generation
+map('n', '<leader>ll', '<cmd>PhpTools Smart<cr>', { desc = 'Smart detect (method or class)' })
 map('n', '<leader>lm', '<cmd>PhpTools Method<cr>', { desc = 'Generate method' })
 map('n', '<leader>lc', '<cmd>PhpTools Class<cr>', { desc = 'Generate class' })
 map('n', '<leader>lg', '<cmd>PhpTools GetSet<cr>', { desc = 'Generate getter/setter' })

@@ -490,8 +490,8 @@ function M.resolve_php_include()
     end
   end
 
-  local env_call_pattern = "[ge]n?v%(['\"]([A-Z_][A-Z0-9_]*)['\"]%)"
-  local env_var = line:match(env_call_pattern)
+  local env_var = line:match("getenv%(['\"]([A-Z_][A-Z0-9_]*)['\"]%)")
+    or line:match("env%(['\"]([A-Z_][A-Z0-9_]*)['\"]%)")
   if env_var then
     local env_value = resolve_env_variable(env_var)
     if not env_value then
@@ -499,8 +499,8 @@ function M.resolve_php_include()
       return
     end
 
-    local env_concat_pattern = "([ge]n?v%(['\"][A-Z_][A-Z0-9_]*['\"]%))%s*%.%s*['\"]([^'\"]+)['\"]"
-    local _, file_part = line:match(env_concat_pattern)
+    local file_part = line:match("getenv%(['\"][A-Z_][A-Z0-9_]*['\"]%)%s*%.%s*['\"]([^'\"]+)['\"]")
+      or line:match("env%(['\"][A-Z_][A-Z0-9_]*['\"]%)%s*%.%s*['\"]([^'\"]+)['\"]")
 
     if file_part then
       local filepath = build_filepath(env_value, file_part)

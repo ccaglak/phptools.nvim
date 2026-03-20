@@ -190,10 +190,9 @@ local function setup_buffer(buf, opts)
   api.nvim_set_option_value("bufhidden", opts.bufhidden or "wipe", { buf = buf })
 
   -- Setup close keymaps
-  local keymap_opts = { noremap = true, silent = true, buffer = buf }
   for _, key in ipairs(close_keys) do
     pcall(function()
-      api.nvim_buf_set_keymap(buf, "n", key, "<cmd>q<CR>", keymap_opts)
+      api.nvim_buf_set_keymap(buf, "n", key, "<cmd>q<CR>", { noremap = true, silent = true })
     end)
   end
 
