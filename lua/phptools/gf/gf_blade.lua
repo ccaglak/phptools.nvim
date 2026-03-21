@@ -26,29 +26,38 @@ end
 
 function M.get_component_under_cursor()
   local line = vim.fn.getline(".")
-  local component = line:match("<x%-([%w%-%.]+)")
+  local component = line:match("</x%-([%w%-%.]+)") or line:match("<x%-([%w%-%.]+)")
   if component then
-    return component:gsub("%-", "_"):gsub("%.", "/")
+    return component:gsub("%.", "/")
   end
   local livewire = line:match("@livewire%('([%w%-%.]+)'%)")
   if livewire then
-    return livewire:gsub("%-", "_"):gsub("%.", "/")
+    return livewire:gsub("%.", "/")
   end
   return nil
 end
 
 function M.find_component_file(component_name)
   local paths = M.get_paths()
+  local studly_name = utils.kebab_to_studly(component_name)
   local possible = {
     np(paths.components .. "/" .. component_name .. ".blade.php"),
     np(paths.views .. "/" .. component_name .. ".blade.php"),
-    np(paths.app_components .. "/" .. component_name:gsub("_", "") .. ".php"),
+    np(paths.app_components .. "/" .. studly_name .. ".php"),
   }
   for _, file in ipairs(possible) do
     if vim.fn.filereadable(file) == 1 then
       return file
     end
   end
+
+  -- Fallback: glob search in views directory
+  local root = gf_utils.get_project_root() or vim.fn.getcwd()
+  local results = vim.fn.globpath(root .. "/resources/views", "**/" .. component_name .. ".blade.php", 0, 1)
+  if results and #results > 0 then
+    return results[1]
+  end
+
   return nil
 end
 

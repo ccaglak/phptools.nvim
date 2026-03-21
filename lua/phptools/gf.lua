@@ -98,6 +98,67 @@ local function parse_blade_expression()
   return nil
 end
 
+local function find_blade_for_route(route_name)
+  local root = gf_utils.get_project_root() or vim.fn.getcwd()
+  local parts = {}
+  for part in route_name:gmatch("[^.]+") do
+    table.insert(parts, part)
+  end
+  if #parts == 0 then
+    return nil
+  end
+  local path = root .. "/resources/views"
+  for i = 1, #parts - 1 do
+    path = path .. "/" .. parts[i]
+  end
+  local blade_file = gf_utils.normalize_path(path .. "/" .. parts[#parts] .. ".blade.php")
+  if vim.fn.filereadable(blade_file) == 1 then
+    return blade_file
+  end
+  return nil
+end
+
+local function navigate_to_route(route_name)
+  if not route_name or route_name == "" then
+    return
+  end
+
+  local has_blade = find_blade_for_route(route_name) ~= nil
+  local has_controller = false
+
+  local route_list, _ = routes.get_routes()
+  if route_list then
+    for _, route in ipairs(route_list) do
+      if route.name == route_name then
+        local ctrl, _ = routes.parse_controller_action(route.action)
+        if ctrl and routes.find_controller_file(ctrl) then
+          has_controller = true
+        end
+        break
+      end
+    end
+  end
+
+  if has_blade and has_controller then
+    vim.ui.select({ "Controller", "Blade View" }, { prompt = "Navigate to:" }, function(choice)
+      if not choice then
+        return
+      end
+      if choice == "Controller" then
+        routes.goto_by_name(route_name)
+      else
+        blade._toBlade(route_name)
+      end
+    end)
+  elseif has_blade then
+    blade._toBlade(route_name)
+  elseif has_controller then
+    routes.goto_by_name(route_name)
+  else
+    gf_utils.notify_warn("No blade view or controller found for route: " .. route_name)
+  end
+end
+
 local function navigate_to_config(config_key)
   if not config_key or config_key == "" then
     gf_utils.notify_warn("No config key provided")
@@ -174,6 +235,27 @@ local function dispatch_navigation()
       end
     end
 
+    -- @vite directive: @vite('path') or @vite(['path1', 'path2'])
+    if line:match("@vite") then
+      local paths = {}
+      for path in line:gmatch("['\"]([^'\"]+)['\"]") do
+        table.insert(paths, path)
+      end
+      if #paths == 1 then
+        local root = gf_utils.get_project_root() or vim.fn.getcwd()
+        gf_utils.resolve_and_open_file(root .. "/" .. paths[1])
+        return true
+      elseif #paths > 1 then
+        vim.ui.select(paths, { prompt = "Open vite asset:" }, function(choice)
+          if choice then
+            local root = gf_utils.get_project_root() or vim.fn.getcwd()
+            gf_utils.resolve_and_open_file(root .. "/" .. choice)
+          end
+        end)
+        return true
+      end
+    end
+
     -- Try Blade expressions: {{ view() }}, {{ config() }}, {{ route() }}
     local expr_info = parse_blade_expression()
     if expr_info and expr_info.function_name and expr_info.argument then
@@ -184,6 +266,10 @@ local function dispatch_navigation()
         blade._toBlade(expr_info.argument)
         return true
       elseif expr_info.function_name == "route" then
+        if expr_info.argument and expr_info.argument ~= "" then
+          navigate_to_route(expr_info.argument)
+          return true
+        end
         routes.browse()
         return true
       end
@@ -213,7 +299,7 @@ local function dispatch_navigation()
     end
 
     -- HTML tag components
-    if line:match("<x%-[%w%-%.]+") or line:match("<livewire:") then
+    if line:match("</x%-[%w%-%.]+") or line:match("<x%-[%w%-%.]+") or line:match("<livewire:") then
       blade.goto_component()
       return true
     end
@@ -229,20 +315,27 @@ local function dispatch_navigation()
         return true
       end
 
-      -- Try Blade expressions in PHP
-      local expr_info = parse_blade_expression()
-      if expr_info then
-        if expr_info.function_name == "view" then
-          blade._toBlade(expr_info.argument)
-          return true
-        elseif expr_info.function_name == "config" then
-          navigate_to_config(expr_info.argument)
-          return true
-        end
+      -- view(), config() calls in PHP
+      local view_arg = line:match("view%s*%(%s*['\"]([^'\"]+)['\"]")
+      if view_arg then
+        blade._toBlade(view_arg)
+        return true
+      end
+
+      local config_arg = line:match("config%s*%(%s*['\"]([^'\"]+)['\"]")
+      if config_arg then
+        navigate_to_config(config_arg)
+        return true
       end
 
       -- Routes (Laravel only)
       if line:match("route%s*%(") or line:match("Route::") then
+        local name_arg = line:match("name%s*%(%s*['\"]([^'\"]+)['\"]")
+          or line:match("route%s*%(%s*['\"]([^'\"]+)['\"]")
+        if name_arg then
+          navigate_to_route(name_arg)
+          return true
+        end
         routes.browse()
         return true
       end
@@ -321,9 +414,9 @@ local function dispatch_navigation()
     end
 
     -- Function definition navigation in Blade files
-    -- Detects function calls like config('key'), env('VAR'), etc.
-    local func_call_pattern = "([a-z_][a-z0-9_]*)%s*%("
-    if line:match(func_call_pattern) then
+    -- Only triggers when the word under cursor is followed by (
+    local cursor_word = vim.fn.expand("<cword>")
+    if cursor_word and cursor_word:match("^[a-z_][a-z0-9_]*$") and line:match(cursor_word .. "%s*%(") then
       if functions.goto_function() then
         return true
       end

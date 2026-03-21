@@ -14,32 +14,39 @@ function M.get_routes()
   if vim.fn.filereadable(np(root .. "/artisan")) == 0 then
     return nil, "Not in a Laravel project"
   end
-  local cmd = string.format('cd "%s" && php artisan route:list --compact 2>/dev/null', root)
-  local handle = io.popen(cmd)
-  if not handle then
-    return nil, "Failed to execute artisan"
+  local output = vim.system(
+    { "php", "artisan", "route:list", "--json" },
+    { cwd = root, text = true }
+  ):wait()
+
+  if output.code ~= 0 then
+    return nil, "Failed to execute artisan route:list"
   end
+
+  -- Strip PHP warnings/deprecations before JSON array
+  local json_str = output.stdout:match("%[.+%]")
+  if not json_str then
+    return nil, "Failed to parse route list"
+  end
+
+  local ok, data = pcall(vim.json.decode, json_str)
+  if not ok or not data then
+    return nil, "Failed to parse route list"
+  end
+
   local routes = {}
-  for line in handle:lines() do
-    if line and line:match("%S") and not line:match("^[+%-|%s]*$") and not line:match("^%s*Method%s") then
-      local parts = {}
-      for part in line:gmatch("%S+") do
-        table.insert(parts, part)
-      end
-      if #parts >= 2 then
-        local method = parts[1]
-        local uri = parts[2]
-        local action = parts[#parts]
-        table.insert(routes, {
-          method = method,
-          uri = uri,
-          action = action,
-          display = string.format("%s %s", method, uri),
-        })
-      end
-    end
+  for _, route in ipairs(data) do
+    local method = route.method or ""
+    local uri = route.uri or ""
+    local action = route.action or ""
+    table.insert(routes, {
+      method = method,
+      uri = uri,
+      action = action,
+      name = route.name or "",
+      display = string.format("%s %s", method, uri),
+    })
   end
-  handle:close()
   return routes, nil
 end
 
@@ -91,6 +98,35 @@ function M.goto_controller(controller, method)
       gf_utils.notify_info("Found method: " .. method)
     end
   end
+end
+
+-- ============================================================================
+-- Route Name Lookup
+-- ============================================================================
+
+function M.goto_by_name(route_name)
+  if not route_name or route_name == "" then
+    return false
+  end
+
+  local routes, err = M.get_routes()
+  if not routes then
+    gf_utils.notify_error(err or "Unknown error")
+    return false
+  end
+
+  for _, route in ipairs(routes) do
+    if route.name == route_name then
+      local controller, method = M.parse_controller_action(route.action)
+      if controller then
+        M.goto_controller(controller, method)
+        return true
+      end
+    end
+  end
+
+  gf_utils.notify_warn("Route not found: " .. route_name)
+  return false
 end
 
 -- ============================================================================
